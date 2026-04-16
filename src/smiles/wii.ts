@@ -1,25 +1,20 @@
-// INFORMACIÓN DEL APP 
-export let id = 'amorwii';
-export let app = 'AmorWii';
-export let desc = 'Mensajes positivos para alegrar tu día';
-export let lanzamiento = 2026;
-export let by = '@wilder.taype';
-export let linkme = 'https://wtaype.github.io/';
-export let ipdev = import.meta.env.VITE_DEV;
-export let version = 'v9';
+export const id = "amorwii";
+export const app = "AmorWii";
+export const desc =
+  "Crea mensajes de amor en segundos. Diseno limpio, enlaces por slug y experiencia rapida.";
+export const lanzamiento = 2026;
+export const by = "Wilder Taype";
+export const linkme = "https://wtaype.me";
+export const linkweb = "https://amorwii.vercel.app";
+export const ipdev = process.env.NEXT_PUBLIC_MIDEV ?? "";
+export const version = "v9";
 
-/** ACTUALIZACIÓN PRINCIPAL ONE DEV [MAIN] (1)
+/** Actualizar main luego esto, pero si es mucho, solo esto. (1)
+git tag v9 -m "Version v9" ; git push origin v9  
+
+//  ACTUALIZACIÓN PRINCIPAL ONE DEV [START] (2)
 git add . ; git commit -m "Actualizacion Principal v9.10.10" ; git push origin main
 
-//  Actualizar versiones de seguridad [TAG NUEVO] (2)
-git tag v9 -m "Version v9" ; git push origin v9
-
-// Actualizar versiones de seguridad [TAG REMPLAZO] (3)
+// En caso de emergencia, para actualizar el Tag existente. (3)
 git tag -d v9 ; git tag v9 -m "Version v9 actualizada" ; git push origin v9 --force
-
-// Actualizar versiones de seguridad [ELIMINAR CARPETA - ARCHIVO ONLINE] (4)
-git rm --cached skills-lock.json ; git commit -m "Archivo Eliminado" ; git push origin main
-git rm -r --cached .claude/ ; git commit -m "Carpeta Eliminada" ; git push origin main
-
-
- ACTUALIZACION TAG[END] */
+ ACTUALIZACION TAG[END]  */
