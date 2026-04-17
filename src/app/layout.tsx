@@ -1,17 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Poppins } from "next/font/google";
 import { WI_CSS } from "../smiles/wi-inline";
 import { PrincipalShell } from "@/smiles/principal";
 import { app, by, desc, linkweb } from "@/smiles/wii";
 import { FALLBACK_TEMA, WI_TEMAS } from "@/smiles/widev/temas";
-
-/** Una sola fuente, 2 pesos — elimina los chunks CSS bloqueantes de Google Fonts */
-const poppins = Poppins({
-  subsets: ["latin"],
-  variable: "--font-poppins",
-  display: "swap",
-  weight: ["400", "700"],
-});
 
 const themeInitScript = `
 (() => {
@@ -83,10 +74,9 @@ export default function RootLayout({
       lang="es"
       data-theme={FALLBACK_TEMA}
       suppressHydrationWarning
-      className={poppins.variable}
     >
       <head>
-        {/* CSS inline — igual estrategia que TypingWii: cero chunks bloqueantes */}
+        {/* Todo el CSS inline — cero chunks externos bloqueantes (estrategia TypingWii) */}
         <style dangerouslySetInnerHTML={{ __html: WI_CSS }} />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
