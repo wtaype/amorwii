@@ -13,7 +13,17 @@ const poppins = Poppins({
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-const themeInitScript = `
+/** Minifica JS inline en build time — sin dependencias extra */
+function minjs(s: string) {
+  return s
+    .replace(/\/\/[^\n]*/g, "")          // elimina comentarios //
+    .replace(/\n\s*/g, "")               // elimina saltos de línea e indentación
+    .replace(/\s{2,}/g, " ")             // colapsa espacios múltiples
+    .replace(/\s*([=:,;{}()[\]<>!&|?])\s*/g, "$1") // elimina espacios alrededor de operadores
+    .trim();
+}
+
+const themeInitScript = minjs(`
 (() => {
   const key = "amorwii:witema";
   const temas = ${JSON.stringify(WI_TEMAS)};
@@ -38,7 +48,7 @@ const themeInitScript = `
   if (meta) meta.setAttribute("content", colorMap[theme] || colorMap["${FALLBACK_TEMA}"]);
   requestAnimationFrame(() => root.classList.remove("wi-theme-boot"));
 })();
-`;
+`);
 
 export const metadata: Metadata = {
   metadataBase: new URL(linkweb),
