@@ -53,3 +53,6 @@ secrets.*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# auto-generados por scripts/build-css.mjs (fuente editada: src/smiles/wi.css)
+src/smiles/wicss.ts

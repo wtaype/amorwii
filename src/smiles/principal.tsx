@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { WiFooter } from "./footer";
 import { WiHeader } from "./header";
 import { WiTemaPicker } from "./widev/witema-picker";
+import { WiSmart } from "./widev/wismart";
 
 export function PrincipalShell({ children }: { children: ReactNode }) {
   return (
@@ -14,7 +15,10 @@ export function PrincipalShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <WiFooter />
-      <WiTemaPicker />
+      {/* WiTemaPicker: no crítico para FCP — se activa en primera interacción */}
+      <WiSmart>
+        <WiTemaPicker />
+      </WiSmart>
     </div>
   );
 }
