@@ -48,7 +48,7 @@ export function WiHeader() {
             <WiIcono name={NAV_ACCIONES[0].icon} />
             <span>{NAV_ACCIONES[0].label}</span>
           </Link>
-          <Link href={NAV_ACCIONES[1].href} className="bt_auth registrar">
+          <Link href={NAV_ACCIONES[1].href} className="bt_auth">
             <WiIcono name={NAV_ACCIONES[1].icon} />
             <span>{NAV_ACCIONES[1].label}</span>
           </Link>
@@ -57,10 +57,9 @@ export function WiHeader() {
             <span>{NAV_ACCIONES[2].label}</span>
           </Link>
         </div>
-
         <button
           type="button"
-          className="wimenu"
+          className="wimenu dpn"
           aria-label="Abrir menu de navegacion"
           onClick={() => setOpen(true)}
         >
