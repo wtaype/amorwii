@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { WiFooter } from "./footer";
 import { WiHeader } from "./header";
-import { WiTemaPicker } from "./widev/witema-picker";
+import { WiTemaPickerLazy } from "./widev/witema-lazy";
 
 export function PrincipalShell({ children }: { children: ReactNode }) {
   return (
@@ -14,7 +14,7 @@ export function PrincipalShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <WiFooter />
-      <WiTemaPicker />
+      <WiTemaPickerLazy />
     </div>
   );
 }

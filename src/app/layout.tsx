@@ -1,29 +1,16 @@
-import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Poppins, Space_Grotesk } from "next/font/google";
-import "../smiles/wi.css";
+import type { Metadata, Viewport } from "next";
+import { Poppins } from "next/font/google";
+import { WI_CSS } from "../smiles/wi-inline";
 import { PrincipalShell } from "@/smiles/principal";
 import { app, by, desc, linkweb } from "@/smiles/wii";
 import { FALLBACK_TEMA, WI_TEMAS } from "@/smiles/widev/temas";
 
+/** Una sola fuente, 2 pesos — elimina los chunks CSS bloqueantes de Google Fonts */
 const poppins = Poppins({
   subsets: ["latin"],
   variable: "--font-poppins",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
-});
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-jakarta",
-  display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const grotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-grotesk",
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "700"],
 });
 
 const themeInitScript = `
@@ -52,6 +39,10 @@ const themeInitScript = `
   requestAnimationFrame(() => root.classList.remove("wi-theme-boot"));
 })();
 `;
+
+export const viewport: Viewport = {
+  themeColor: "#FF5C69",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(linkweb),
@@ -82,7 +73,6 @@ export const metadata: Metadata = {
     title: app,
     description: desc,
   },
-  themeColor: "#FF5C69",
 };
 
 export default function RootLayout({
@@ -93,9 +83,11 @@ export default function RootLayout({
       lang="es"
       data-theme={FALLBACK_TEMA}
       suppressHydrationWarning
-      className={`${poppins.variable} ${jakarta.variable} ${grotesk.variable}`}
+      className={poppins.variable}
     >
       <head>
+        {/* CSS inline — igual estrategia que TypingWii: cero chunks bloqueantes */}
+        <style dangerouslySetInnerHTML={{ __html: WI_CSS }} />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
