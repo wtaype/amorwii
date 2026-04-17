@@ -29,6 +29,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="es" data-theme={FALLBACK_TEMA} suppressHydrationWarning>
       <head>
+        {/* Preconnect para máxima velocidad de DNS (Google Fonts) */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Carga de fuente asíncrona optimizada para FCP (swap) */}
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
         <style dangerouslySetInnerHTML={{ __html: WI_CSS }} />
         <script dangerouslySetInnerHTML={{ __html: temaScript }} />
       </head>
