@@ -21,7 +21,7 @@ export function WiSmart({ children, delay = 0, fallback = null }: { children: Re
       cleanup();
     };
 
-    const events = ["touchstart", "scroll", "click", "mousemove", "keydown"];
+    const events = ["touchstart", "scroll", "click", "keydown"];
 
     const cleanup = () => {
       events.forEach((event) =>
