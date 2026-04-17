@@ -1,5 +1,5 @@
-import type { Metadata, Viewport } from "next";
-import { Poppins } from "next/font/google";
+import type { Metadata } from "next";
+import { Plus_Jakarta_Sans, Poppins, Space_Grotesk } from "next/font/google";
 import "../smiles/wi.css";
 import { PrincipalShell } from "@/smiles/principal";
 import { app, by, desc, linkweb } from "@/smiles/wii";
@@ -10,6 +10,20 @@ const poppins = Poppins({
   variable: "--font-poppins",
   display: "swap",
   weight: ["400", "500", "600", "700", "800", "900"],
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const grotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-grotesk",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 const themeInitScript = `
@@ -68,9 +82,6 @@ export const metadata: Metadata = {
     title: app,
     description: desc,
   },
-};
-
-export const viewport: Viewport = {
   themeColor: "#FF5C69",
 };
 
@@ -82,7 +93,7 @@ export default function RootLayout({
       lang="es"
       data-theme={FALLBACK_TEMA}
       suppressHydrationWarning
-      className={`${poppins.variable}`}
+      className={`${poppins.variable} ${jakarta.variable} ${grotesk.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />

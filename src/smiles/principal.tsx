@@ -1,10 +1,7 @@
 import type { ReactNode } from "react";
-import dynamic from "next/dynamic";
+import { WiFooter } from "./footer";
 import { WiHeader } from "./header";
-import { WiSmart } from "./widev/wismart";
-
-const WiFooter = dynamic(() => import("./footer").then((m) => m.WiFooter));
-const WiTemaPicker = dynamic(() => import("./widev/witema-picker").then((m) => m.WiTemaPicker));
+import { WiTemaPicker } from "./widev/witema-picker";
 
 export function PrincipalShell({ children }: { children: ReactNode }) {
   return (
@@ -16,10 +13,8 @@ export function PrincipalShell({ children }: { children: ReactNode }) {
       <main id="wiMain" className="wi_main">
         {children}
       </main>
-      <WiSmart>
-        <WiFooter />
-        <WiTemaPicker />
-      </WiSmart>
+      <WiFooter />
+      <WiTemaPicker />
     </div>
   );
 }

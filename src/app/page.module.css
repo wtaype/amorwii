@@ -7,8 +7,8 @@
 
 /* ── Keyframes ─────────────────────────────────────────── */
 @keyframes am_up {
-  from { transform: translateY(20px); filter: blur(5px); }
-  to   { transform: translateY(0); filter: blur(0); }
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes am_blink {
   0%, 100% { opacity: 1; }
@@ -91,7 +91,8 @@
   color: var(--mco);
   margin-bottom: 2.5vh;
   box-shadow: 0 4px 14px rgba(0, 0, 0, .06);
-  animation: am_up .55s cubic-bezier(.4, 0, .2, 1) .1s both;
+  opacity: 0;
+  animation: am_up .55s cubic-bezier(.4, 0, .2, 1) .1s forwards;
 }
 .wi_tag::before {
   content: '';
@@ -113,7 +114,8 @@
   line-height: 1.15;
   margin-bottom: 2.5vh;
   max-width: 780px;
-  animation: am_up .6s cubic-bezier(.4, 0, .2, 1) .25s both;
+  opacity: 0;
+  animation: am_up .6s cubic-bezier(.4, 0, .2, 1) .25s forwards;
 }
 
 /* ── SUBTÍTULO ─────────────────────────────────────────── */
@@ -125,7 +127,8 @@
   line-height: 1.8;
   max-width: 580px;
   margin-bottom: 3.5vh;
-  animation: am_up .6s cubic-bezier(.4, 0, .2, 1) .4s both;
+  opacity: 0;
+  animation: am_up .6s cubic-bezier(.4, 0, .2, 1) .4s forwards;
 }
 .wi_hero p strong {
   color: var(--mco);
@@ -140,7 +143,8 @@
   gap: 1.5vh;
   flex-wrap: wrap;
   margin-bottom: 6vh;
-  animation: am_up .6s cubic-bezier(.4, 0, .2, 1) .55s both;
+  opacity: 0;
+  animation: am_up .6s cubic-bezier(.4, 0, .2, 1) .55s forwards;
 }
 
 .wi_btn {
@@ -188,7 +192,8 @@
   grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 2vh;
   width: 100%;
-  animation: am_up .65s cubic-bezier(.4, 0, .2, 1) .7s both;
+  opacity: 0;
+  animation: am_up .65s cubic-bezier(.4, 0, .2, 1) .7s forwards;
 }
 
 .wi_card {
