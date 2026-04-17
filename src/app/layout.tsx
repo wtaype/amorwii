@@ -1,5 +1,5 @@
-import type { Metadata, Viewport } from "next";
-import { Poppins } from "next/font/google";
+import type { Metadata } from "next";
+import { Plus_Jakarta_Sans, Poppins, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import "../smiles/wi.css";
 import { PrincipalShell } from "@/smiles/principal";
@@ -9,21 +9,25 @@ import { FALLBACK_TEMA, WI_TEMAS } from "@/smiles/widev/temas";
 const poppins = Poppins({
   subsets: ["latin"],
   variable: "--font-poppins",
-  display: "optional",
+  display: "swap",
   weight: ["400", "500", "600", "700", "800", "900"],
-  preload: true,
 });
 
-function minjs(s: string) {
-  return s
-    .replace(/\/\/[^\n]*/g, "")
-    .replace(/\n\s*/g, "")
-    .replace(/\s{2,}/g, " ")
-    .replace(/\s*([=:,;{}()[\]<>!&|?])\s*/g, "$1")
-    .trim();
-}
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+});
 
-const themeInitScript = minjs(`
+const grotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-grotesk",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+const themeInitScript = `
 (() => {
   const key = "amorwii:witema";
   const temas = ${JSON.stringify(WI_TEMAS)};
@@ -44,9 +48,11 @@ const themeInitScript = minjs(`
   const root = document.documentElement;
   root.dataset.theme = theme;
   root.classList.add("wi-theme-boot");
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", colorMap[theme] || colorMap["${FALLBACK_TEMA}"]);
   requestAnimationFrame(() => root.classList.remove("wi-theme-boot"));
 })();
-`);
+`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(linkweb),
@@ -59,7 +65,10 @@ export const metadata: Metadata = {
   applicationName: app,
   authors: [{ name: by }],
   creator: by,
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+  },
   alternates: { canonical: "/" },
   openGraph: {
     title: app,
@@ -74,9 +83,6 @@ export const metadata: Metadata = {
     title: app,
     description: desc,
   },
-};
-
-export const viewport: Viewport = {
   themeColor: "#FF5C69",
 };
 
@@ -88,7 +94,7 @@ export default function RootLayout({
       lang="es"
       data-theme={FALLBACK_TEMA}
       suppressHydrationWarning
-      className={poppins.variable}
+      className={`${poppins.variable} ${jakarta.variable} ${grotesk.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
