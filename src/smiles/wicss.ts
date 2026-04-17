@@ -1,3 +1,10 @@
+/**
+ * wi-inline.ts
+ * CSS global de AmorWii como string para inyectar via <style> inline en el <head>.
+ * Estrategia: igual que TypingWii — CSS inline = cero chunks externos bloqueantes.
+ * NO importar wi.css directamente en layout.tsx — usar este archivo.
+ */
+export const WI_CSS = `
 /* ==================== VARIABLES GLOBALES ==================== */
 :root {
   --fz_s1: clamp(0.625rem, 0.8vh, 0.7rem);
@@ -934,3 +941,4 @@ body.movil_open .movil_drawer { transform: translateX(0) }
   .wi_btns { flex-direction: column; }
   .wi_grid { grid-template-columns: 1fr; }
 }
+`;
