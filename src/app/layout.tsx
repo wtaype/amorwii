@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Poppins, Space_Grotesk } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import "../smiles/wi.css";
 import { PrincipalShell } from "@/smiles/principal";
@@ -11,20 +11,6 @@ const poppins = Poppins({
   variable: "--font-poppins",
   display: "swap",
   weight: ["400", "500", "600", "700", "800", "900"],
-});
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-jakarta",
-  display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const grotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-grotesk",
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
 });
 
 const themeInitScript = `
@@ -97,7 +83,7 @@ export default function RootLayout({
       lang="es"
       data-theme={FALLBACK_TEMA}
       suppressHydrationWarning
-      className={`${poppins.variable} ${jakarta.variable} ${grotesk.variable}`}
+      className={poppins.variable}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
