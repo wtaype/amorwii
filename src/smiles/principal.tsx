@@ -15,9 +15,8 @@ export function PrincipalShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <WiFooter />
-      {/* Componentes no críticos (Fuente y Tema) — se cargan diferidamente (interacción o caché) */}
+      {/* WiTemaPicker: no crítico para FCP — se activa en primera interacción */}
       <WiSmart>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
         <WiTemaPicker />
       </WiSmart>
     </div>
