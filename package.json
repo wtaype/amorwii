@@ -8,6 +8,12 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "browserslist": [
+    "chrome >= 100",
+    "firefox >= 100",
+    "safari >= 16",
+    "edge >= 100"
+  ],
   "dependencies": {
     "next": "16.2.4",
     "react": "19.2.4",
