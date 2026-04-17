@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node src/smiles/wicss.mjs --dev",
+    "build": "node src/smiles/wicss.mjs --build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -19,6 +19,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "lightningcss": "^1.32.0",
     "typescript": "^5"
   },
   "browserslist": [
