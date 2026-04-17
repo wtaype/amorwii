@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PlantillaView } from "./plantilla";
 import { abrirModal, cerrarTodos, iniciarModales } from "./widev/modales";
@@ -14,7 +14,7 @@ function modoAVista(modo: string | null): VistaAuth {
   return "login";
 }
 
-function LoginInner() {
+export function LoginView() {
   const searchParams = useSearchParams();
   const modo = searchParams.get("modo");
   const [loading, setLoading] = useState(false);
@@ -182,13 +182,5 @@ function LoginInner() {
         </div>
       </div>
     </PlantillaView>
-  );
-}
-
-export function LoginView() {
-  return (
-    <Suspense>
-      <LoginInner />
-    </Suspense>
   );
 }
