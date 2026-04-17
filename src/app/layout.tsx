@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Poppins, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import "../smiles/wi.css";
@@ -83,6 +83,9 @@ export const metadata: Metadata = {
     title: app,
     description: desc,
   },
+};
+
+export const viewport: Viewport = {
   themeColor: "#FF5C69",
 };
 
