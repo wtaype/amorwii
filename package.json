@@ -9,10 +9,10 @@
     "lint": "eslint"
   },
   "browserslist": [
-    "chrome >= 90",
-    "firefox >= 90",
-    "safari >= 15",
-    "edge >= 90"
+    "chrome >= 100",
+    "firefox >= 100",
+    "safari >= 16",
+    "edge >= 100"
   ],
   "dependencies": {
     "next": "16.2.4",
