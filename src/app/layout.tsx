@@ -9,17 +9,17 @@ import { FALLBACK_TEMA, WI_TEMAS } from "@/smiles/widev/temas";
 const poppins = Poppins({
   subsets: ["latin"],
   variable: "--font-poppins",
-  display: "swap",
+  display: "optional",
   weight: ["400", "500", "600", "700", "800", "900"],
+  preload: true,
 });
 
-/** Minifica JS inline en build time — sin dependencias extra */
 function minjs(s: string) {
   return s
-    .replace(/\/\/[^\n]*/g, "")          // elimina comentarios //
-    .replace(/\n\s*/g, "")               // elimina saltos de línea e indentación
-    .replace(/\s{2,}/g, " ")             // colapsa espacios múltiples
-    .replace(/\s*([=:,;{}()[\]<>!&|?])\s*/g, "$1") // elimina espacios alrededor de operadores
+    .replace(/\/\/[^\n]*/g, "")
+    .replace(/\n\s*/g, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s*([=:,;{}()[\]<>!&|?])\s*/g, "$1")
     .trim();
 }
 
@@ -44,8 +44,6 @@ const themeInitScript = minjs(`
   const root = document.documentElement;
   root.dataset.theme = theme;
   root.classList.add("wi-theme-boot");
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", colorMap[theme] || colorMap["${FALLBACK_TEMA}"]);
   requestAnimationFrame(() => root.classList.remove("wi-theme-boot"));
 })();
 `);
@@ -61,10 +59,7 @@ export const metadata: Metadata = {
   applicationName: app,
   authors: [{ name: by }],
   creator: by,
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   openGraph: {
     title: app,
