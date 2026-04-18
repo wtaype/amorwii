@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { app } from "./wii";
 import { useEffect, useRef, useState } from "react";
-import { activarWiVista } from "./widev/wivista";
+import { activarWiVista, activarWiSmart } from "./widev/wivista";
 
 const ROLES = ['Mensajes de Amor 💕', 'San Valentín 💌', 'Aniversarios 🥂', 'Declaraciones ❤️', 'Cartas de Amor ✉️'];
 const STATS = [[1200, 'Mensajes Creados'], [8, 'Plantillas Únicas'], [6, 'Categorías']];
@@ -79,10 +78,13 @@ export function HomeView() {
       });
       obs.observe(sf);
     }
+    // 4. Implementación Global wiSmart (Carga diferida inteligente)
+    const stopWiSmart = activarWiSmart();
 
     return () => {
       clearInterval(interval);
       obs?.disconnect();
+      if (stopWiSmart) stopWiSmart();
       cleanups.forEach((c) => c());
     };
   }, []);
@@ -120,7 +122,7 @@ export function HomeView() {
           </div>
         </div>
         <div className="hero_visual">
-          <Image src="/amor.webp" alt={app + " Home"} width={600} height={600} priority={false} loading="lazy" />
+          <img data-src="/amor.webp" alt={app + " Home"} width={600} height={600} className="wiSmart" />
           <div className="hero_deco">
             <i className="fas fa-heart"></i><i className="fas fa-heart"></i><i className="fas fa-heart"></i>
           </div>
@@ -152,7 +154,7 @@ export function HomeView() {
         <div className="test_bg">
           <div className="test_inner">
             <div className="test_left">
-              <Image src="/smile.avif" alt={app} width={120} height={120} className="test_img" loading="lazy" />
+              <img data-src="/smile.avif" alt={app} width={120} height={120} className="test_img wiSmart" />
               <h2><i className="fas fa-comments"></i> Lo que dicen nuestros usuarios</h2>
               <p>Miles de personas ya expresaron sus sentimientos con <strong>{app}</strong></p>
             </div>

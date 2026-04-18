@@ -70,3 +70,30 @@ export function usarWiVista<T extends HTMLElement>(opts: WiVistaOptions = {}) {
 
   return ref;
 }
+
+export function activarWiSmart(selector: string = "img.wiSmart") {
+  const wiSmartImages = document.querySelectorAll<HTMLImageElement>(selector);
+  if (!wiSmartImages.length) return () => undefined;
+
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target as HTMLImageElement;
+        if (img.dataset.src) {
+          img.src = img.dataset.src;
+          img.removeAttribute("data-src");
+          img.style.opacity = "1";
+        }
+        obs.unobserve(img);
+      }
+    });
+  }, { rootMargin: "150px" });
+
+  wiSmartImages.forEach((img) => {
+    img.style.opacity = "0";
+    img.style.transition = "opacity 0.6s ease";
+    observer.observe(img);
+  });
+
+  return () => observer.disconnect();
+}
