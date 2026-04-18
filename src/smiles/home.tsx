@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { app } from "./wii";
 import { useEffect, useRef, useState } from "react";
 import { activarWiVista } from "./widev/wivista";
@@ -119,7 +120,7 @@ export function HomeView() {
           </div>
         </div>
         <div className="hero_visual">
-          <img src="/amor.webp" alt={app + " Home"} width={600} height={600} loading="lazy" />
+          <Image src="/amor.webp" alt={app + " Home"} width={600} height={600} priority={false} loading="lazy" />
           <div className="hero_deco">
             <i className="fas fa-heart"></i><i className="fas fa-heart"></i><i className="fas fa-heart"></i>
           </div>
