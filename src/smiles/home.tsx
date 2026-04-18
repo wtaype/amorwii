@@ -120,7 +120,7 @@ export function HomeView() {
           </div>
         </div>
         <div className="hero_visual">
-          <Image src="/amor.webp" alt={app + " Home"} width={600} height={600} sizes="(max-width: 768px) 100vw, 600px" priority />
+          <Image src="/amor.webp" alt={app + " Home"} width={600} height={600} priority={false} loading="lazy" />
           <div className="hero_deco">
             <i className="fas fa-heart"></i><i className="fas fa-heart"></i><i className="fas fa-heart"></i>
           </div>
