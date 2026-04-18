@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { app } from "./wii";
 import { useEffect, useRef, useState } from "react";
 import { activarWiVista } from "./widev/wivista";
@@ -119,7 +120,7 @@ export function HomeView() {
           </div>
         </div>
         <div className="hero_visual">
-          <img data-src="/amor.webp" alt={app + " Home"} width={600} height={600} className="wiSmart" />
+          <Image src="/amor.webp" alt={app + " Home"} width={600} height={600} sizes="(max-width: 768px) 100vw, 600px" priority />
           <div className="hero_deco">
             <i className="fas fa-heart"></i><i className="fas fa-heart"></i><i className="fas fa-heart"></i>
           </div>
@@ -151,7 +152,7 @@ export function HomeView() {
         <div className="test_bg">
           <div className="test_inner">
             <div className="test_left">
-              <img data-src="/smile.avif" alt={app} width={120} height={120} className="test_img wiSmart" />
+              <img src="/smile.avif" alt={app} width={120} height={120} className="test_img" loading="lazy" />
               <h2><i className="fas fa-comments"></i> Lo que dicen nuestros usuarios</h2>
               <p>Miles de personas ya expresaron sus sentimientos con <strong>{app}</strong></p>
             </div>
