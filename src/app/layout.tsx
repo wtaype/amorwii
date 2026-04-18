@@ -10,9 +10,6 @@ const temaScript = `(()=>{const k="amorwii:witema",ts=${JSON.stringify(WI_TEMAS)
 /* WiSmart ultra-optimizado en Vanilla JS para estilos pesados (Poppins y Font Awesome) */
 const wiFlash = `(()=>{const load=()=>{['https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css'].forEach(h=>{const l=document.createElement('link');l.rel='stylesheet';l.href=h;document.head.appendChild(l)});localStorage.setItem('wiFlash','1');evs.forEach(e=>window.removeEventListener(e,load))};const evs=['scroll','touchstart','click','mousemove','keydown'];if(localStorage.getItem('wiFlash'))load();else evs.forEach(e=>window.addEventListener(e,load,{once:true,passive:true}))})();`;
 
-/* Motor global para imágenes diferidas y engaño a Lighthouse */
-const wiSmartImg = `(()=>{const w=()=>{if(window.wiSmartRan)return;window.wiSmartRan=1;const i=document.querySelectorAll('img.wiSmart');if(!i.length)return;const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.src=x.target.dataset.src;x.target.removeAttribute('data-src');x.target.style.opacity='1';o.unobserve(x.target)}})},{rootMargin:'200px'});i.forEach(x=>{x.style.opacity='0';x.style.transition='opacity 0.6s';o.observe(x)})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',w);else w();const m=new MutationObserver(w);m.observe(document.body,{childList:true,subtree:true})})();`;
-
 export const viewport: Viewport = {
   themeColor: "#FF5C69",
 };
@@ -39,8 +36,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script dangerouslySetInnerHTML={{ __html: temaScript }} />
         {/* Ejecuta la lógica dinámica wiFlash para CSS diferido */}
         <script dangerouslySetInnerHTML={{ __html: wiFlash }} />
-        {/* Ejecuta la recolección global de wiSmart para LCP */}
-        <script dangerouslySetInnerHTML={{ __html: wiSmartImg }} />
       </head>
       <body>
         <PrincipalShell>{children}</PrincipalShell>
