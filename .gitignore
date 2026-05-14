@@ -53,3 +53,7 @@ secrets.*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Firebase AI / Agent Skills
+AGENTS.md
+CLAUDE.md
