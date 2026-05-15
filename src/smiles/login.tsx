@@ -1,194 +1,203 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { PlantillaView } from "./plantilla";
-import { abrirModal, cerrarTodos, iniciarModales } from "./widev/modales";
+import { useEffect, useState } from "react";
+import { cerrarTodos, abrirModal, iniciarModales } from "./widev/modales";
+import "@/app/login/login.css";
 
-type VistaAuth = "login" | "registrar" | "recuperar";
+export type VistaAuth = "login" | "registrar" | "recuperar";
 
-function modoAVista(modo: string | null): VistaAuth {
-  if (modo === "reg" || modo === "registrar") return "registrar";
-  if (modo === "rec" || modo === "recuperar") return "recuperar";
-  return "login";
+export interface LoginConfig {
+  db?: string;
+  pagina?: string;
+  showLinks?: boolean;
+  allowReset?: boolean;
+  allowLogin?: boolean;
+  allowReg?: boolean;
 }
 
-function LoginInner() {
-  const searchParams = useSearchParams();
-  const modo = searchParams.get("modo");
-  const [loading, setLoading] = useState(false);
-  const [aviso, setAviso] = useState("");
-  const [vista, setVista] = useState<VistaAuth>("login");
+const CFG: LoginConfig = {
+  db: "smiles",
+  pagina: "rol",
+  showLinks: true,
+  allowReset: true,
+  allowLogin: true,
+  allowReg: true,
+};
 
-  useEffect(() => {
-    iniciarModales();
-    const nextVista = modoAVista(modo);
-    setVista(nextVista);
-    setAviso("");
-    const t = window.setTimeout(() => abrirModal("wilg_modal"), 45);
-    return () => window.clearTimeout(t);
-  }, [modo]);
+export const MODAL_ID = "wilg_modal";
 
-  const abrirAuth = (nextVista: VistaAuth) => {
-    setVista(nextVista);
-    setAviso("");
-    window.setTimeout(() => abrirModal("wilg_modal"), 15);
+export function abrirLogin(vista: VistaAuth = "login") {
+  const el = document.getElementById(MODAL_ID);
+  if (el) {
+    el.dataset.vista = vista;
+    abrirModal(MODAL_ID);
+  }
+}
+
+function EyeToggle({ targetId }: { targetId: string }) {
+  const [visible, setVisible] = useState(false);
+  const toggle = () => {
+    const el = document.getElementById(targetId) as HTMLInputElement | null;
+    if (el) { el.type = visible ? "password" : "text"; setVisible(!visible); }
   };
-
-  const onSubmit = (ev: FormEvent<HTMLFormElement>) => {
-    ev.preventDefault();
-    setLoading(true);
-
-    const actual = vista;
-    setTimeout(() => {
-      setLoading(false);
-      if (actual === "recuperar") {
-        setAviso("Te enviamos un enlace de recuperacion.");
-        setVista("login");
-        return;
-      }
-      if (actual === "registrar") {
-        setAviso("Cuenta creada (demo UI).");
-      } else {
-        setAviso("Ingreso correcto (demo UI).");
-      }
-      cerrarTodos();
-    }, 650);
-  };
-
   return (
-    <PlantillaView
-      etiqueta="Acceso"
-      titulo="Login, registro y recuperar"
-      descripcion="Base reusable en modal (widev) para login, registrar y olvidar contrasena."
-    >
-      <div className="wilg_acciones">
-        <button className="wi_btn primary" type="button" onClick={() => abrirAuth("login")}>
-          Entrar
-        </button>
-        <button className="wi_btn secondary" type="button" onClick={() => abrirAuth("registrar")}>
-          Crear cuenta
-        </button>
-      </div>
-
-      {aviso && <p className="wilg_aviso">{aviso}</p>}
-
-      <div
-        id="wilg_modal"
-        className={`wiModal wilg_mod ${vista === "registrar" ? "wilg_mod_reg" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Acceso de usuario"
-      >
-        <div className="modalBody">
-          <button type="button" className="modalX" aria-label="Cerrar modal">
-            ×
-          </button>
-
-          <form id="liForm" className="wilg_form" onSubmit={onSubmit}>
-            {vista === "login" && (
-              <>
-                <div className="wilg_head">
-                  <h2>Bienvenido</h2>
-                  <p>Inicia sesion en tu cuenta</p>
-                </div>
-                <div className="wilg_grupo">
-                  <label htmlFor="email">Correo o usuario</label>
-                  <input id="email" name="email" type="text" placeholder="correo@ejemplo.com" required />
-                </div>
-                <div className="wilg_grupo">
-                  <label htmlFor="password">Contrasena</label>
-                  <input id="password" name="password" type="password" placeholder="Tu contrasena" minLength={6} required />
-                </div>
-                <button className="wilg_btn" type="submit" disabled={loading}>
-                  {loading ? "Ingresando..." : "Iniciar sesion"}
-                </button>
-                <div className="wilg_links">
-                  <button type="button" className="wilg_link" onClick={() => setVista("recuperar")}>
-                    Olvide mi contrasena
-                  </button>
-                  <button type="button" className="wilg_link" onClick={() => setVista("registrar")}>
-                    Crear cuenta
-                  </button>
-                </div>
-              </>
-            )}
-
-            {vista === "registrar" && (
-              <>
-                <div className="wilg_head">
-                  <h2>Crear cuenta</h2>
-                  <p>Unete en segundos</p>
-                </div>
-                <div className="wilg_grid">
-                  <div className="wilg_grupo">
-                    <label htmlFor="regEmail">Email</label>
-                    <input id="regEmail" name="regEmail" type="email" placeholder="correo@ejemplo.com" required />
-                  </div>
-                  <div className="wilg_grupo">
-                    <label htmlFor="regUsuario">Usuario</label>
-                    <input id="regUsuario" name="regUsuario" type="text" placeholder="tu_usuario" required />
-                  </div>
-                  <div className="wilg_grupo">
-                    <label htmlFor="regNombre">Nombre</label>
-                    <input id="regNombre" name="regNombre" type="text" placeholder="Tu nombre" required />
-                  </div>
-                  <div className="wilg_grupo">
-                    <label htmlFor="regApellidos">Apellidos</label>
-                    <input id="regApellidos" name="regApellidos" type="text" placeholder="Tus apellidos" required />
-                  </div>
-                </div>
-                <div className="wilg_grupo">
-                  <label htmlFor="regPassword">Contrasena</label>
-                  <input id="regPassword" name="regPassword" type="password" placeholder="Minimo 6 caracteres" minLength={6} required />
-                </div>
-                <div className="wilg_grupo">
-                  <label htmlFor="regPassword1">Confirmar contrasena</label>
-                  <input id="regPassword1" name="regPassword1" type="password" placeholder="Repite tu contrasena" minLength={6} required />
-                </div>
-                <button className="wilg_btn" type="submit" disabled={loading}>
-                  {loading ? "Creando..." : "Registrarme"}
-                </button>
-                <div className="wilg_links">
-                  <button type="button" className="wilg_link" onClick={() => setVista("login")}>
-                    Ya tengo cuenta
-                  </button>
-                </div>
-              </>
-            )}
-
-            {vista === "recuperar" && (
-              <>
-                <div className="wilg_head">
-                  <h2>Recuperar acceso</h2>
-                  <p>Te enviaremos un enlace por email</p>
-                </div>
-                <div className="wilg_grupo">
-                  <label htmlFor="recEmail">Email o usuario</label>
-                  <input id="recEmail" name="recEmail" type="text" placeholder="correo@ejemplo.com" required />
-                </div>
-                <button className="wilg_btn" type="submit" disabled={loading}>
-                  {loading ? "Enviando..." : "Enviar enlace"}
-                </button>
-                <div className="wilg_links">
-                  <button type="button" className="wilg_link" onClick={() => setVista("login")}>
-                    Volver al login
-                  </button>
-                </div>
-              </>
-            )}
-          </form>
-        </div>
-      </div>
-    </PlantillaView>
+    <i
+      className={`fas ${visible ? "fa-eye-slash" : "fa-eye"} wilg_ojo`}
+      onClick={toggle}
+      aria-hidden="true"
+    />
   );
 }
 
 export function LoginView() {
+  const [vista, setVista] = useState<VistaAuth>("login");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    iniciarModales();
+    const modal = document.getElementById(MODAL_ID);
+    if (!modal) return;
+    const obs = new MutationObserver(() => {
+      if (modal.classList.contains("active")) {
+        setVista((modal.dataset.vista as VistaAuth) || "login");
+        setLoading(false);
+      }
+    });
+    obs.observe(modal, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+
+  const ir = (v: VistaAuth) => setVista(v);
+
+  const onSubmit = (ev: FormEvent<HTMLFormElement>) => {
+    ev.preventDefault();
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      if (vista === "recuperar") { alert("Enlace enviado."); ir("login"); return; }
+      alert(vista === "registrar" ? "Cuenta creada (demo)." : "Ingreso correcto (demo).");
+      cerrarTodos();
+    }, 650);
+  };
+
+  const isReg = vista === "registrar";
+
   return (
-    <Suspense>
-      <LoginInner />
-    </Suspense>
+    <div
+      id={MODAL_ID}
+      className={`wiModal wilg_mod${isReg ? " wilg_mod_reg" : ""}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Acceso"
+    >
+      <div className="modalBody">
+        <button type="button" className="modalX" onClick={cerrarTodos} aria-label="Cerrar">
+          <i className="fas fa-times" />
+        </button>
+
+        <form id="wilg_form" onSubmit={onSubmit}>
+          {/* ── LOGO ── */}
+          <div className="wilg_head">
+            <div className="wilg_logo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/smile.avif" alt="AmorWii" />
+            </div>
+
+            {vista === "login" && <><h2>Bienvenido</h2><p>Inicia sesión en tu cuenta</p></>}
+            {vista === "registrar" && <><h2>Crear Cuenta</h2><p>Únete a la comunidad</p></>}
+            {vista === "recuperar" && <><h2>Recuperar</h2><p>Te enviaremos un enlace a tu email</p></>}
+          </div>
+
+          {/* ── LOGIN ── */}
+          {vista === "login" && CFG.allowLogin && (
+            <>
+              <div className="wilg_grupo">
+                <i className="fas fa-envelope" aria-hidden="true" />
+                <input id="wilg_email" name="email" type="text" placeholder="Email o usuario" required />
+              </div>
+              <div className="wilg_grupo">
+                <i className="fas fa-lock" aria-hidden="true" />
+                <input id="wilg_pw" name="password" type="password" placeholder="Contraseña" minLength={6} required />
+                <EyeToggle targetId="wilg_pw" />
+              </div>
+              <button className="wilg_btn" type="submit" disabled={loading}>
+                <i className="fas fa-sign-in-alt" /> {loading ? "Ingresando..." : "Iniciar Sesión"}
+              </button>
+              <div className="wilg_links">
+                {CFG.allowReset && <span onClick={() => ir("recuperar")}><i className="fas fa-key" /> ¿Olvidaste tu contraseña?</span>}
+                {CFG.allowReg && CFG.showLinks && <span onClick={() => ir("registrar")}>Crear cuenta <i className="fas fa-arrow-right" /></span>}
+              </div>
+            </>
+          )}
+
+          {/* ── REGISTRO ── */}
+          {vista === "registrar" && CFG.allowReg && (
+            <>
+              <div className="wilg_grid">
+                <div className="wilg_grupo">
+                  <i className="fas fa-envelope" />
+                  <input id="rg_email" name="email" type="email" placeholder="Email" required />
+                </div>
+                <div className="wilg_grupo">
+                  <i className="fas fa-user" />
+                  <input id="rg_user" name="usuario" type="text" placeholder="Usuario" required />
+                </div>
+                <div className="wilg_grupo">
+                  <i className="fas fa-user-tie" />
+                  <input id="rg_nom" name="nombre" type="text" placeholder="Nombre" required />
+                </div>
+                <div className="wilg_grupo">
+                  <i className="fas fa-user-tie" />
+                  <input id="rg_ape" name="apellidos" type="text" placeholder="Apellidos" required />
+                </div>
+                <div className="wilg_grupo">
+                  <i className="fas fa-lock" />
+                  <input id="rg_pw" name="password" type="password" placeholder="Contraseña" minLength={6} required />
+                  <EyeToggle targetId="rg_pw" />
+                </div>
+                <div className="wilg_grupo">
+                  <i className="fas fa-lock" />
+                  <input id="rg_pw2" name="password2" type="password" placeholder="Confirmar" minLength={6} required />
+                  <EyeToggle targetId="rg_pw2" />
+                </div>
+              </div>
+              <div className="wilg_check">
+                <label>
+                  <input type="checkbox" required />
+                  Acepto los <a href="/acerca/terminos" target="_blank">términos y condiciones</a>
+                </label>
+              </div>
+              <button className="wilg_btn" type="submit" disabled={loading}>
+                <i className="fas fa-user-plus" /> {loading ? "Creando..." : "Registrarme"}
+              </button>
+              {CFG.showLinks && CFG.allowLogin && (
+                <div className="wilg_links">
+                  <span onClick={() => ir("login")}><i className="fas fa-arrow-left" /> Ya tengo cuenta</span>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── RECUPERAR ── */}
+          {vista === "recuperar" && CFG.allowReset && (
+            <>
+              <div className="wilg_grupo">
+                <i className="fas fa-envelope" />
+                <input id="rc_email" name="email" type="text" placeholder="Email o usuario" required />
+              </div>
+              <button className="wilg_btn" type="submit" disabled={loading}>
+                <i className="fas fa-paper-plane" /> {loading ? "Enviando..." : "Enviar enlace"}
+              </button>
+              {CFG.showLinks && CFG.allowLogin && (
+                <div className="wilg_links">
+                  <span onClick={() => ir("login")}><i className="fas fa-arrow-left" /> Volver</span>
+                </div>
+              )}
+            </>
+          )}
+        </form>
+      </div>
+    </div>
   );
 }

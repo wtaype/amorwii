@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
+import { PrincipalShell } from "@/smiles/principal";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
-  return <section>{children}</section>;
+  return (
+    <PrincipalShell>
+      <section>{children}</section>
+    </PrincipalShell>
+  );
 }

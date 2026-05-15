@@ -2,20 +2,20 @@ import type { Metadata } from "next";
 import { PlantillaView } from "@/smiles/plantilla";
 
 export const metadata: Metadata = {
-  title: "Panel Admin",
+  title: "Mis Mensajes",
   robots: { index: false, follow: false },
 };
 
-export default function AdminPage() {
+export default function MensajesPage() {
   return (
     <PlantillaView
-      etiqueta="Admin"
-      titulo="Panel de Administración"
-      descripcion="Gestión global de usuarios, mensajes y configuración del sitio."
+      etiqueta="Chat"
+      titulo="Mis Mensajes"
+      descripcion="Tu chat interno estilo WhatsApp. Envía y guarda mensajes privados."
     >
       <div className="wi_btns">
         <span className="wi_btn primary">
-          <i className="fas fa-shield-halved" aria-hidden="true"></i> Panel Admin en construcción
+          <i className="fas fa-comment-dots" aria-hidden="true"></i> Chat en construcción
         </span>
       </div>
     </PlantillaView>

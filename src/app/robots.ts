@@ -6,11 +6,11 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/crear", "/acerca", "/ejemplos", "/login"],
-        disallow: ["/admin", "/gestor", "/smile"],
+        allow: "/",
+        disallow: ["/smile/", "/perfil/", "/editor/", "/admin/", "/api/"],
+        crawlDelay: 1,
       },
     ],
     sitemap: `${linkweb}/sitemap.xml`,
-    host: linkweb,
   };
 }

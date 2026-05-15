@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { app } from "./wii";
 import { cx } from "./widev/clase";
-import { WiIcono } from "./widev/icono";
-import { esRutaActiva, NAV_ACCIONES, NAV_PUBLICA } from "./widev/nav";
+import { esRutaActiva, NAV_PUBLICA } from "./widev/nav";
 import { useBodyClass, useCerrarConEscape } from "./widev/movil";
+import { abrirLogin } from "./login";
 
 export function WiHeader() {
   const pathname = usePathname();
@@ -25,7 +25,7 @@ export function WiHeader() {
       <header className="wiheader">
         <div className="nv_left">
           <Link href="/" className="wilogo" aria-label="Ir al inicio">
-            <WiIcono name="heart" />
+            <i className="fas fa-heart" aria-hidden="true"></i>
             <span>{app}</span>
           </Link>
 
@@ -36,7 +36,7 @@ export function WiHeader() {
                 href={item.href}
                 className={cx("nv_item", esRutaActiva(pathname, item.href) && "active")}
               >
-                <WiIcono name={item.icon} />
+                <i className={`fas ${item.icon}`} aria-hidden="true"></i>
                 <span>{item.label}</span>
               </Link>
             ))}
@@ -44,18 +44,18 @@ export function WiHeader() {
         </div>
 
         <div className="nv_right" role="group" aria-label="Acciones de usuario">
-          <Link href={NAV_ACCIONES[0].href} className={cx("nv_item", esRutaActiva(pathname, "/ejemplos") && "active")}>
-            <WiIcono name={NAV_ACCIONES[0].icon} />
-            <span>{NAV_ACCIONES[0].label}</span>
+          <Link href="/descubre" className={cx("nv_item", esRutaActiva(pathname, "/descubre") && "active")}>
+            <i className="fas fa-gauge" aria-hidden="true" />
+            <span>Descubre</span>
           </Link>
-          <Link href={NAV_ACCIONES[1].href} className="bt_auth">
-            <WiIcono name={NAV_ACCIONES[1].icon} />
-            <span>{NAV_ACCIONES[1].label}</span>
-          </Link>
-          <Link href={NAV_ACCIONES[2].href} className="bt_auth login">
-            <WiIcono name={NAV_ACCIONES[2].icon} />
-            <span>{NAV_ACCIONES[2].label}</span>
-          </Link>
+          <button type="button" className="bt_auth" onClick={() => abrirLogin("registrar")}>
+            <i className="fas fa-user-plus" aria-hidden="true" />
+            <span>Registrar</span>
+          </button>
+          <button type="button" className="bt_auth login" onClick={() => abrirLogin("login")}>
+            <i className="fas fa-sign-in-alt" aria-hidden="true" />
+            <span>Login</span>
+          </button>
         </div>
         <button
           type="button"
@@ -63,7 +63,7 @@ export function WiHeader() {
           aria-label="Abrir menu de navegacion"
           onClick={() => setOpen(true)}
         >
-          <WiIcono name="menu" />
+          <i className="fas fa-bars" aria-hidden="true"></i>
         </button>
       </header>
 
@@ -75,11 +75,11 @@ export function WiHeader() {
           aria-label="Cerrar menu"
           onClick={() => setOpen(false)}
         >
-          <WiIcono name="close" />
+          <i className="fas fa-xmark" aria-hidden="true"></i>
         </button>
         <div className="movil_logo">
-          <WiIcono name="heart" />
-          <span>{app}</span>
+          <i className="fas fa-heart" aria-hidden="true"></i>
+          <span> {app}</span>
         </div>
         <div className="movil_nav">
           {NAV_PUBLICA.map((item) => (
@@ -89,23 +89,23 @@ export function WiHeader() {
               className={cx("nv_item", esRutaActiva(pathname, item.href) && "active")}
               onClick={() => setOpen(false)}
             >
-              <WiIcono name={item.icon} />
+              <i className={`fas ${item.icon}`} aria-hidden="true"></i>
               <span>{item.label}</span>
             </Link>
           ))}
           <div className="movil_divider" />
-          <Link href={NAV_ACCIONES[0].href} className="nv_item" onClick={() => setOpen(false)}>
-            <WiIcono name={NAV_ACCIONES[0].icon} />
-            <span>{NAV_ACCIONES[0].label}</span>
+          <Link href="/descubre" className="nv_item" onClick={() => setOpen(false)}>
+            <i className="fas fa-gauge" aria-hidden="true" />
+            <span>Descubre</span>
           </Link>
-          <Link href={NAV_ACCIONES[1].href} className="bt_auth registrar" onClick={() => setOpen(false)}>
-            <WiIcono name={NAV_ACCIONES[1].icon} />
-            <span>{NAV_ACCIONES[1].label}</span>
-          </Link>
-          <Link href={NAV_ACCIONES[2].href} className="bt_auth login" onClick={() => setOpen(false)}>
-            <WiIcono name={NAV_ACCIONES[2].icon} />
-            <span>{NAV_ACCIONES[2].label}</span>
-          </Link>
+          <button type="button" className="bt_auth registrar" onClick={() => { setOpen(false); abrirLogin("registrar"); }}>
+            <i className="fas fa-user-plus" aria-hidden="true" />
+            <span>Registrar</span>
+          </button>
+          <button type="button" className="bt_auth login" onClick={() => { setOpen(false); abrirLogin("login"); }}>
+            <i className="fas fa-sign-in-alt" aria-hidden="true" />
+            <span>Login</span>
+          </button>
         </div>
       </nav>
     </>

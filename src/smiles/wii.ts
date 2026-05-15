@@ -1,13 +1,16 @@
-export const id = "amorwii";
-export const app = "AmorWii";
-export const desc =
-  "Crea mensajes de amor en segundos. Diseno limpio, enlaces por slug y experiencia rapida.";
+// INFORMACIÓN DEL APP 
+export const id = 'amorwii'
+export const app = 'AmorWii'
+export const icon = 'fa-heartbeat'
+export const titulo = 'Mensajes de Amor Personalizados para Parejas';
+export const keywii = 'amor, mensajes de amor, cartas de amor, san valentín, aniversarios, amorwii';
+export const descri = 'Crea mensajes de amor personalizados para San Valentín, aniversarios y fechas especiales. Dedicatorias románticas, cartas de amor.';
+export const linkweb = 'https://amorwii.com'; // Sin slash (/), al final
 export const lanzamiento = 2026;
-export const by = "Wilder Taype";
-export const linkme = "https://wtaype.me";
-export const linkweb = "https://amorwii.vercel.app";
+export const by = 'Wilder Taype';
+export const linkme = 'https://wtaype.github.io/';
 export const ipdev = process.env.NEXT_PUBLIC_MIDEV;
-export const version = "v15";
+export const version = "v16";
 
 /** Actualizar main luego esto, pero si es mucho, solo esto. (1)
 git tag v15 -m "Version v15" ; git push origin v15  

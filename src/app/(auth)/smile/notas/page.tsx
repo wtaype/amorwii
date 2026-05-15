@@ -2,20 +2,20 @@ import type { Metadata } from "next";
 import { PlantillaView } from "@/smiles/plantilla";
 
 export const metadata: Metadata = {
-  title: "Panel Admin",
+  title: "Mis Notas",
   robots: { index: false, follow: false },
 };
 
-export default function AdminPage() {
+export default function NotasPage() {
   return (
     <PlantillaView
-      etiqueta="Admin"
-      titulo="Panel de Administración"
-      descripcion="Gestión global de usuarios, mensajes y configuración del sitio."
+      etiqueta="Notas"
+      titulo="Mis Notas"
+      descripcion="Tus notas personales privadas. Solo tú puedes verlas."
     >
       <div className="wi_btns">
         <span className="wi_btn primary">
-          <i className="fas fa-shield-halved" aria-hidden="true"></i> Panel Admin en construcción
+          <i className="fas fa-sticky-note" aria-hidden="true"></i> Notas en construcción
         </span>
       </div>
     </PlantillaView>
