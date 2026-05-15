@@ -2,6 +2,7 @@
 export const id = 'amorwii'
 export const app = 'AmorWii'
 export const icon = 'fa-heartbeat'
+export const color = 'Dulce' // Cielo / Dulce / Paz / Oro / Mora / Futuro
 export const titulo = 'Mensajes de Amor Personalizados para Parejas';
 export const keywii = 'amor, mensajes de amor, cartas de amor, san valentín, aniversarios, amorwii';
 export const descri = 'Crea mensajes de amor personalizados para San Valentín, aniversarios y fechas especiales. Dedicatorias románticas, cartas de amor.';
@@ -10,15 +11,15 @@ export const lanzamiento = 2026;
 export const by = 'Wilder Taype';
 export const linkme = 'https://wtaype.github.io/';
 export const ipdev = process.env.NEXT_PUBLIC_MIDEV;
-export const version = "v16";
+export const version = "v17";
 
 /** Actualizar main luego esto, pero si es mucho, solo esto. (1)
-git tag v16 -m "Version v16" ; git push origin v16  
+git tag v17 -m "Version v17" ; git push origin v17  
 
 //  ACTUALIZACIÓN PRINCIPAL ONE DEV [START] (2)
-git add . ; git commit -m "Actualizacion Principal v16.10.10" ; git push origin main
+git add . ; git commit -m "Actualizacion Principal v17.10.10" ; git push origin main
 
 // En caso de emergencia, para actualizar el Tag existente. (3)
-git tag -d v16 ; git tag v16 -m "Version v16 actualizada" ; git push origin v16 --force
+git tag -d v17 ; git tag v17 -m "Version v17 actualizada" ; git push origin v17 --force
 
  ACTUALIZACION TAG[END]  */
