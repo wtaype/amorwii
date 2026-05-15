@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Witema from "@/components/Witema";
+import Mensaje from "@/components/Mensaje";
+import Notificacion from "@/components/Notificacion";
 import * as wii from "@/app/wii";
 
 const poppins = Poppins({
@@ -69,12 +71,14 @@ export default function RootLayout({
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
           crossOrigin="anonymous"
           referrerPolicy="no-referrer"
         />
       </head>
       <body>
+        <Mensaje />
+        <Notificacion />
         <Header />
         <div id="wimain">
           {children}
