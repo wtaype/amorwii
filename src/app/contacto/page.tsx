@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export const metadata = {
   title: 'Contacto | AmorWii',
@@ -47,9 +48,9 @@ export default function ContactoPage() {
       </div>
 
       <div style={{ marginTop: '2rem' }}>
-        <a href="/" style={{ color: '#0066cc', textDecoration: 'none', fontWeight: 'bold' }}>
+        <Link href="/" style={{ color: '#0066cc', textDecoration: 'none', fontWeight: 'bold' }}>
           ← Volver al inicio
-        </a>
+        </Link>
       </div>
     </main>
   );
