@@ -26,6 +26,9 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "AmorWii | Mensajes de Amor Personalizados",
   description: "Crea mensajes de amor personalizados para San Valentín, aniversarios y fechas especiales.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 const THEMES = [
