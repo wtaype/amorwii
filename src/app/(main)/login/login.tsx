@@ -59,7 +59,7 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
                     if (data) {
                         // Already exists, redirect to dashboard
                         Mensaje(`¡Bienvenido de nuevo, ${data.nombre}!`, "success");
-                        router.push("/");
+                        window.location.href = "/bienvenida";
                     } else if (session.user.app_metadata?.provider === "google") {
                         // New user from Google
                         if (session.user.email) setRegEmail(session.user.email);
@@ -112,7 +112,7 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
             if (error) throw error;
             const { data: wi } = await supabase.from("smiles").select("*").eq("email", em).maybeSingle();
             if (wi?.tema) localStorage.wiTema = wi.tema;
-            Mensaje("¡Bienvenido de nuevo!", "success"); setTimeout(() => router.push("/"), 500);
+            Mensaje("¡Bienvenido de nuevo!", "success"); setTimeout(() => { window.location.href = "/bienvenida" }, 500);
         } catch (e: any) { Mensaje(msgError(e), "error"); } finally { setCargando(false); }
     };
 
@@ -134,7 +134,7 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
             };
             const { error: dbError } = await supabase.from("smiles").insert(nuevoSmile);
             if (dbError) throw dbError;
-            Mensaje("¡Cuenta creada con éxito!", "success"); setTimeout(() => router.push("/"), 1000);
+            Mensaje("¡Cuenta creada con éxito!", "success"); setTimeout(() => { window.location.href = "/bienvenida" }, 1000);
         } catch (e: any) { Mensaje(msgError(e), "error"); } finally { setCargando(false); }
     };
 
@@ -142,23 +142,23 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
         if (cargando) return;
         const fallo = [[!regTerminos, "Acepta los términos"], [!usuarioOk, "Verifica el usuario"]].find(([c]) => c);
         if (fallo) { Mensaje(fallo[1] as string, "warning"); return; }
-        
+
         setCargando(true); limpiarTips();
         try {
             const { data: userData } = await supabase.auth.getUser();
             if (!userData.user) throw new Error("No hay sesión activa");
-            
+
             const nuevoSmile: SmileNuevo = {
                 usuario: sanUser(regUsuario), email: sanEmail(regEmail), nombre: sanName(regNombre).trim(), apellidos: sanName(regApellidos).trim(),
                 avatar: userData.user.user_metadata?.avatar_url || "", bio: "", estado: "activo", plan: "free", rol: "smile", segmento: "creador",
                 tema: localStorage.getItem("wiTema") || "Dulce|#FF5C69", terminos: true, verificado: false, registradoPor: "google",
             };
-            
+
             const { error: dbError } = await supabase.from("smiles").insert(nuevoSmile);
             if (dbError) throw dbError;
-            
-            Mensaje("¡Perfil completado con éxito!", "success"); 
-            setTimeout(() => router.push("/"), 1000);
+
+            Mensaje("¡Perfil completado con éxito!", "success");
+            setTimeout(() => { window.location.href = "/bienvenida" }, 1000);
         } catch (e: any) { Mensaje(msgError(e), "error"); } finally { setCargando(false); }
     };
 
@@ -210,7 +210,7 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
                 <BtnGoogle />
                 <Campo ico="envelope" id="email" place="Email o usuario" tip={tips.email} value={email} onChange={v => setEmail(sanEmail(v))} />
                 <Campo ico="lock" tipo="password" id="password" place="Contraseña" ojo tip={tips.password} value={password} onChange={setPassword} onBlur={() => { }} />
-                <Wispin className={`wilg_btn${!password ? " inactivo" : ""}`} ico="fa-sign-in-alt" textoCarga="Iniciando..." cargando={cargando} onClick={hacerLogin}>Iniciar Sesión</Wispin>
+                <Wispin type="submit" className={`wilg_btn${!password ? " inactivo" : ""}`} ico="fa-sign-in-alt" textoCarga="Iniciando..." cargando={cargando}>Iniciar Sesión</Wispin>
                 {cfg.link === 'si' && (
                     <div className="wilg_links">
                         {cfg.restablecer === 'si' && <span className="wilg_rec" onClick={() => cambiarVista("recuperar")}><i className="fas fa-key" /> ¿Olvidaste tu contraseña?</span>}
@@ -233,7 +233,7 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
                 <div className="wilg_check">
                     <label><input type="checkbox" checked={regTerminos} onChange={e => setRegTerminos(e.target.checked)} /><span>Acepto los <a href="/terminos" target="_blank">términos</a></span></label>
                 </div>
-                <Wispin className={`wilg_btn${!regTerminos ? " inactivo" : ""}`} ico="fa-user-plus" textoCarga="Registrando..." cargando={cargando} onClick={hacerRegistro}>Registrarme</Wispin>
+                <Wispin type="submit" className={`wilg_btn${!regTerminos ? " inactivo" : ""}`} ico="fa-user-plus" textoCarga="Registrando..." cargando={cargando}>Registrarme</Wispin>
                 {cfg.link === 'si' && cfg.login === 'si' && (
                     <div className="wilg_links"><span className="wilg_log" onClick={() => cambiarVista("login")}><i className="fas fa-arrow-left" /> Ya tengo cuenta</span></div>
                 )}
@@ -242,7 +242,7 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
             {vista === "recuperar" && <>
                 <div className="wilg_head"><div className="wilg_logo wilg_logo_sm"><img src="/smile.avif" alt={wii.app} /></div><h2>Recuperar</h2><p>Te enviaremos un enlace a tu email</p></div>
                 <Campo ico="envelope" id="recEmail" place="Email o usuario" tip={tips.recEmail} value={recEmail} onChange={v => setRecEmail(sanEmail(v))} />
-                <Wispin className="wilg_btn" ico="fa-paper-plane" textoCarga="Enviando..." cargando={cargando} onClick={hacerRecuperar}>Enviar enlace</Wispin>
+                <Wispin type="submit" className="wilg_btn" ico="fa-paper-plane" textoCarga="Enviando..." cargando={cargando}>Enviar enlace</Wispin>
                 {cfg.link === 'si' && cfg.login === 'si' && (
                     <div className="wilg_links"><span className="wilg_log" onClick={() => cambiarVista("login")}><i className="fas fa-arrow-left" /> Volver</span></div>
                 )}
@@ -254,7 +254,7 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
                 <div className="wilg_check">
                     <label><input type="checkbox" checked={regTerminos} onChange={e => setRegTerminos(e.target.checked)} /><span>Acepto los <a href="/terminos" target="_blank">términos</a></span></label>
                 </div>
-                <Wispin className={`wilg_btn${!regTerminos ? " inactivo" : ""}`} ico="fa-check" textoCarga="Guardando..." cargando={cargando} onClick={hacerCompletar}>Completar Perfil</Wispin>
+                <Wispin type="submit" className={`wilg_btn${!regTerminos ? " inactivo" : ""}`} ico="fa-check" textoCarga="Guardando..." cargando={cargando}>Completar Perfil</Wispin>
             </>}
 
         </form>

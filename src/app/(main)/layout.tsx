@@ -7,6 +7,8 @@ import Witema from "@/components/Witema";
 import Mensaje from "@/components/Mensaje";
 import Notificacion from "@/components/Notificacion";
 import * as wii from "@/app/wii";
+import { createSupabaseServer } from "@/lib/supabaseServer";
+import type { SmileNuevo } from "@/lib/tipos";
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700', '800', '900'],
@@ -59,11 +61,25 @@ const themeScript = `
   })();
 `;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // ── Leer perfil en el servidor — cero parpadeo en el Header ────────────────
+  let perfilInicial: SmileNuevo | null = null;
+  try {
+    const supabase = await createSupabaseServer();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) {
+      const { data } = await supabase
+        .from("smiles")
+        .select("*")
+        .eq("email", user.email)
+        .maybeSingle();
+      perfilInicial = data ?? null;
+    }
+  } catch { /* sin sesión activa — OK */ }
   return (
     <html lang="es" className={`${poppins.variable} ${outfit.variable}`} suppressHydrationWarning>
       <head>
@@ -79,7 +95,7 @@ export default function RootLayout({
       <body>
         <Mensaje />
         <Notificacion />
-        <Header />
+        <Header perfilInicial={perfilInicial} />
         <div id="wimain">
           {children}
         </div>

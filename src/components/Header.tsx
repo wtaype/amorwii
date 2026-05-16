@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as wii from "@/app/wii";
 import ModalesLogin from "@/components/ModalesLogin";
 import Login from "@/app/(main)/login/login";
+import { supabase } from "@/lib/supabase";
+import type { SmileNuevo } from "@/lib/tipos";
 
 // ── NAV CONFIG — Agregar items: solo agrega un objeto al array ───────────────
 const COMUN = [
@@ -25,7 +27,6 @@ const NAV: Record<string, { nvLeft: any[]; nvRight: any[] }> = {
       { isBtn: true, cls: "bt_auth", ico: "fa-user-plus", txt: "Registrar" },
       { isBtn: true, cls: "bt_auth", ico: "fa-sign-in-alt", txt: "Login" },
     ],
-
   },
   smile: {
     nvLeft: [
@@ -42,7 +43,7 @@ const NAV: Record<string, { nvLeft: any[]; nvRight: any[] }> = {
 };
 
 // ── RENDER ITEM ──────────────────────────────────────────────────────────────
-function Item({ item, pathname, onClick }: { item: any; pathname: string; onClick?: () => void }) {
+function Item({ item, pathname, onClick, perfil, signOut }: { item: any; pathname: string; onClick?: () => void; perfil?: any; signOut?: () => void }) {
   if (item.isBtn) return (
     <button className={item.cls} onClick={onClick}>
       <i className={`fas ${item.ico}`} /> <span>{item.txt}</span>
@@ -50,11 +51,12 @@ function Item({ item, pathname, onClick }: { item: any; pathname: string; onClic
   );
   if (item.isPerfil) return (
     <Link href="/perfil" className={`nv_item${pathname === "/perfil" ? " active" : ""}`}>
-      <i className="fa-solid fa-user-circle" /> <span>Perfil</span>
+      <img src={perfil?.avatar || "/smile.avif"} alt={perfil?.nombre || "Perfil"} />
+      <span>{perfil?.nombre?.split(' ')[0] || "Perfil"}</span>
     </Link>
   );
   if (item.isSalir) return (
-    <button className="nv_item bt_salir"><i className="fa-solid fa-sign-out-alt" /> <span>Salir</span></button>
+    <button className="nv_item bt_salir" onClick={signOut}><i className="fa-solid fa-sign-out-alt" /> <span>Salir</span></button>
   );
   const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
   return (
@@ -65,21 +67,44 @@ function Item({ item, pathname, onClick }: { item: any; pathname: string; onClic
 }
 
 // ── HEADER ───────────────────────────────────────────────────────────────────
-export default function Header() {
+// Recibe perfilInicial desde el Server Component (layout.tsx) — ya resuelto
+// en el servidor, sin delay, sin parpadeo. El useEffect solo escucha cambios
+// en tiempo real (sign in / sign out) para actualizar el estado tras la acción.
+export default function Header({ perfilInicial = null }: { perfilInicial?: SmileNuevo | null }) {
   const pathname = usePathname();
   const [modalTxt, setModalTxt] = useState<string | null>(null);
+  const [perfil, setPerfil] = useState<SmileNuevo | null>(perfilInicial);
 
-  const rol = "todos"; // TODO: Supabase Auth → user?.rol ?? "todos"
+  // Solo escucha cambios de auth en tiempo real — no consulta al cargar
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_OUT") {
+        setPerfil(null);
+      } else if (event === "SIGNED_IN" && session?.user?.email) {
+        const { data } = await supabase
+          .from("smiles")
+          .select("*")
+          .eq("email", session.user.email)
+          .maybeSingle();
+        setPerfil(data ?? null);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signOut = async () => { await supabase.auth.signOut(); };
+
+  const rol = perfil?.rol || "todos";
   const cfg = NAV[rol] ?? NAV.todos;
 
   const items = (arr: any[]) => arr.map((item, i) => (
-    <Item key={i} item={item} pathname={pathname} onClick={() => {
+    <Item key={i} item={item} pathname={pathname} perfil={perfil} signOut={signOut} onClick={() => {
       if (item.isBtn) setModalTxt(item.txt);
       if (document.body.classList.contains("movil_open")) cerrar();
     }} />
   ));
 
-  // Drawer: toggle body.movil_open (mismo patrón que WiiHope)
+  // Drawer: toggle body.movil_open
   const abrir = () => document.body.classList.add("movil_open");
   const cerrar = () => document.body.classList.remove("movil_open");
 
@@ -96,7 +121,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* ── MOBILE DRAWER — mismo HTML que WiiHope ── */}
+      {/* ── MOBILE DRAWER ── */}
       <div className="movil_overlay" onClick={cerrar} />
       <nav className="movil_drawer" role="navigation" aria-label="Menú móvil">
         <button className="movil_close" onClick={cerrar} aria-label="Cerrar"><i className="fas fa-times" /></button>

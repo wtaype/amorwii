@@ -1261,6 +1261,7 @@
     @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2vh); } }
     @keyframes floatUp { 0% { transform: translateY(110vh); opacity: 0; } 15% { opacity: 0.2; } 85% { opacity: 0.2; } 100% { transform: translateY(-10vh); opacity: 0; } }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    @keyframes wi_pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; } }
 
     /* ==================== SECCIONES BASE ==================== */
     section { padding: 8vh 0; }
