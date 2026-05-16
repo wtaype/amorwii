@@ -1,5 +1,6 @@
 // (main) Layout — Experiencia pública completa
 // SEO, tema, header, footer — solo para rutas de /crear, /, /blog, etc.
+import { Poppins, Outfit } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import Header from "@/components/Header";
@@ -10,13 +11,27 @@ import Notificacion from "@/components/Notificacion";
 import { createSupabaseServer } from "@/lib/supabaseServer";
 import type { SmileNuevo } from "@/lib/tipos";
 import * as wii from "@/app/wii";
+import "./globals.css";
+
+const poppins = Poppins({
+  weight: ["400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+  variable: "--font-poppins",
+  display: "swap",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  display: "swap",
+});
 
 const THEMES = [
-  { name: "Cielo",  color: "#0EBEFF" },
-  { name: "Dulce",  color: "#FF5C69" },
-  { name: "Paz",    color: "#29C72E" },
-  { name: "Oro",    color: "#FFDA34" },
-  { name: "Mora",   color: "#7000FF" },
+  { name: "Cielo", color: "#0EBEFF" },
+  { name: "Dulce", color: "#FF5C69" },
+  { name: "Paz", color: "#29C72E" },
+  { name: "Oro", color: "#FFDA34" },
+  { name: "Mora", color: "#7000FF" },
   { name: "Futuro", color: "#21273B" },
 ];
 
@@ -46,7 +61,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   } catch { /* sin sesión activa */ }
 
   return (
-    <>
+    <div className={`${poppins.variable} ${outfit.variable}`}>
       <Script id="theme-script" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeScript }} />
       <Mensaje />
       <Notificacion />
@@ -54,6 +69,6 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       <main id="wimain">{children}</main>
       <Footer />
       <Witema themes={THEMES} />
-    </>
+    </div>
   );
 }
