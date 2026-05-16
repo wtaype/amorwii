@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins, Outfit } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Witema from "@/components/Witema";
@@ -70,7 +71,7 @@ export default async function RootLayout({
   return (
     <html lang="es" className={`${poppins.variable} ${outfit.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <Script id="theme-script" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
@@ -83,9 +84,9 @@ export default async function RootLayout({
         <Mensaje />
         <Notificacion />
         <Header perfilInicial={perfilInicial} />
-        <div id="wimain">
+        <main id="wimain">
           {children}
-        </div>
+        </main>
         <Footer />
         <Witema themes={THEMES} />
       </body>

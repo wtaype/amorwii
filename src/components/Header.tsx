@@ -11,15 +11,19 @@ import type { SmileNuevo } from "@/lib/tipos";
 
 // ── NAV CONFIG — Agregar items: solo agrega un objeto al array ───────────────
 const COMUN = [
-  { href: "/contacto", page: "contacto", ico: "fa-envelope", txt: "Contacto" },
+  { href: "/crear", page: "crear", ico: "fa-plus-circle", txt: "Crear" },
+  { href: "/blog", page: "blog", ico: "fa-book", txt: "Blog" },
+  { href: "/chat", page: "chat", ico: "fa-comments", txt: "Ideas" },
+  { href: "/enviar-qr", page: "enviar-qr", ico: "fa-qrcode", txt: "Enviar QR" },
+  { href: "/plantillas", page: "plantillas", ico: "fa-palette", txt: "Plantillas" },
+  { href: "/ejemplos", page: "ejemplos", ico: "fa-heart", txt: "Ejemplos" },
+  { href: "/acerca", page: "acerca", ico: "fa-info-circle", txt: "Acerca" },
 ];
 
 const NAV: Record<string, { nvLeft: any[]; nvRight: any[] }> = {
   todos: {
     nvLeft: [
       { href: "/", page: "inicio", ico: "fa-house", txt: "Inicio" },
-      { href: "/crear", page: "crear", ico: "fa-plus-circle", txt: "Crear" },
-      { href: "/ejemplos", page: "ejemplos", ico: "fa-heart", txt: "Ejemplos" },
       ...COMUN,
     ],
     nvRight: [
@@ -30,12 +34,14 @@ const NAV: Record<string, { nvLeft: any[]; nvRight: any[] }> = {
   },
   smile: {
     nvLeft: [
-      { href: "/", page: "inicio", ico: "fa-house", txt: "Inicio" },
-      { href: "/crear", page: "crear", ico: "fa-plus-circle", txt: "Crear" },
-      { href: "/plantillas", page: "plantillas", ico: "fa-palette", txt: "Plantillas" },
+      { href: "/", page: "inicio", ico: "fa-house", txt: "Dashboard" },
       ...COMUN,
     ],
     nvRight: [
+      // { href: '/word', page: 'word', ico: 'fa-rocket', txt: 'Planificar' },
+      { href: '/nuevo', page: 'nuevo', ico: 'fa-plus', txt: 'Nuevo Post' },
+      { href: '/notas', page: 'notas', ico: 'fa-note-sticky', txt: 'Notas' },
+      { href: '/mensajes', page: 'mensajes', ico: 'fa-comments', txt: 'Mensajes' },
       { isPerfil: true },
       { isSalir: true },
     ],
@@ -67,9 +73,6 @@ function Item({ item, pathname, onClick, perfil, signOut }: { item: any; pathnam
 }
 
 // ── HEADER ───────────────────────────────────────────────────────────────────
-// Recibe perfilInicial desde el Server Component (layout.tsx) — ya resuelto
-// en el servidor, sin delay, sin parpadeo. El useEffect solo escucha cambios
-// en tiempo real (sign in / sign out) para actualizar el estado tras la acción.
 export default function Header({ perfilInicial = null }: { perfilInicial?: SmileNuevo | null }) {
   const pathname = usePathname();
   const [modalTxt, setModalTxt] = useState<string | null>(null);

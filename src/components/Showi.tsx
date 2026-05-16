@@ -1,14 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-
-type ChildProps = {
-  className?: string;
-  ref?: React.Ref<HTMLElement>;
-};
+import React, { useEffect, useRef } from "react";
 
 interface ShowiProps {
-  children: React.ReactElement<ChildProps>;
+  children: React.ReactNode;
   className?: string; // Clase a agregar cuando sea visible (por defecto 'visible')
   threshold?: number; // Qué % del elemento debe verse para animar (0.15 = 15%)
   isStats?: boolean;  // Activa el contador de números (busca .hstat_n dentro del hijo)
@@ -16,8 +11,8 @@ interface ShowiProps {
 
 /**
  * Showi: Componente Pro para animaciones de entrada y contadores.
- * Clona el hijo y le inyecta la clase directamente — sin divs extra.
- * Compatible con Grid, Flex y cualquier layout.
+ * Funciona perfectamente con Server Components (RSC) mediante manipulación del DOM
+ * sin requerir un div envoltura.
  */
 export default function Showi({
   children,
@@ -25,17 +20,21 @@ export default function Showi({
   threshold = 0.15,
   isStats = false,
 }: ShowiProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const el = ref.current;
+    // Al ser children un Server Component opaco, no podemos usar cloneElement.
+    // Usamos el DOM hermano para aplicar las clases directamente.
+    const el = ref.current?.nextElementSibling as HTMLElement;
     if (!el) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsVisible(true);
+          // Animación regular
+          if (!isStats && className) {
+            el.classList.add(...className.split(" "));
+          }
 
           // Animar contadores si isStats está activo
           if (isStats) {
@@ -60,12 +59,12 @@ export default function Showi({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [threshold, isStats]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [threshold, isStats, className]);
 
-  return React.cloneElement(children, {
-    ref,
-    className: [children.props.className, !isStats && isVisible ? className : ""]
-      .filter(Boolean)
-      .join(" "),
-  });
+  return (
+    <>
+      <span ref={ref} style={{ display: "none" }} />
+      {children}
+    </>
+  );
 }
