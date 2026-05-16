@@ -12,6 +12,7 @@ import Witip from "@/components/Witip";
 
 // ── CONFIG ───────────────────────────────────────────────────────────────────
 export const LCFG = { modal: 'si', link: 'si', restablecer: 'si', login: 'si', registrar: 'si', google: 'si' };
+const irPagina = "crear"; // Página a la que redirige al entrar (sin slash)
 
 type Vista = "login" | "registrar" | "recuperar" | "completar";
 type TipData = { msg: string; tipo: "error" | "success" };
@@ -57,9 +58,8 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
                 try {
                     const { data, error } = await supabase.from("smiles").select("nombre").eq("id", session.user.id).maybeSingle();
                     if (data) {
-                        // Already exists, redirect to dashboard
-                        Mensaje(`¡Bienvenido de nuevo, ${data.nombre}!`, "success");
-                        window.location.href = "/bienvenida";
+                        // Si ya existe, el Header se encarga o lo hacemos aquí si no es modal
+                        if (!isModal) entrar(data);
                     } else if (session.user.app_metadata?.provider === "google") {
                         // New user from Google
                         if (session.user.email) setRegEmail(session.user.email);
@@ -111,9 +111,15 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
             const { error } = await supabase.auth.signInWithPassword({ email: em, password });
             if (error) throw error;
             const { data: wi } = await supabase.from("smiles").select("*").eq("email", em).maybeSingle();
-            if (wi?.tema) localStorage.wiTema = wi.tema;
-            Mensaje("¡Bienvenido de nuevo!", "success"); setTimeout(() => { window.location.href = "/bienvenida" }, 500);
+            entrar(wi);
         } catch (e: any) { Mensaje(msgError(e), "error"); } finally { setCargando(false); }
+    };
+
+    const entrar = (wi: any) => {
+        Mensaje(`¡Bienvenido, ${wi?.nombre || "Smile"}! 💖`, "success");
+        if (wi?.tema) localStorage.wiTema = wi.tema;
+        router.push("/" + irPagina);
+        if (isModal) router.refresh();
     };
 
     const hacerRegistro = async () => {
@@ -134,7 +140,7 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
             };
             const { error: dbError } = await supabase.from("smiles").insert(nuevoSmile);
             if (dbError) throw dbError;
-            Mensaje("¡Cuenta creada con éxito!", "success"); setTimeout(() => { window.location.href = "/bienvenida" }, 1000);
+            entrar(nuevoSmile);
         } catch (e: any) { Mensaje(msgError(e), "error"); } finally { setCargando(false); }
     };
 
@@ -156,9 +162,7 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
 
             const { error: dbError } = await supabase.from("smiles").insert(nuevoSmile);
             if (dbError) throw dbError;
-
-            Mensaje("¡Perfil completado con éxito!", "success");
-            setTimeout(() => { window.location.href = "/bienvenida" }, 1000);
+            entrar(nuevoSmile);
         } catch (e: any) { Mensaje(msgError(e), "error"); } finally { setCargando(false); }
     };
 

@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as wii from "@/app/wii";
 import ModalesLogin from "@/components/ModalesLogin";
 import Login from "@/app/(main)/login/login";
 import { supabase } from "@/lib/supabase";
 import type { SmileNuevo } from "@/lib/tipos";
+
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+const irSalir = ""; // Página a la que redirige al salir (sin slash)
 
 // ── NAV CONFIG — Agregar items: solo agrega un objeto al array ───────────────
 const COMUN = [
@@ -74,6 +77,7 @@ function Item({ item, pathname, onClick, perfil, signOut }: { item: any; pathnam
 
 // ── HEADER ───────────────────────────────────────────────────────────────────
 export default function Header({ perfilInicial = null }: { perfilInicial?: SmileNuevo | null }) {
+  const router = useRouter();
   const pathname = usePathname();
   const [modalTxt, setModalTxt] = useState<string | null>(null);
   const [perfil, setPerfil] = useState<SmileNuevo | null>(perfilInicial);
@@ -95,7 +99,30 @@ export default function Header({ perfilInicial = null }: { perfilInicial?: Smile
     return () => subscription.unsubscribe();
   }, []);
 
-  const signOut = async () => { await supabase.auth.signOut(); };
+  // Cerrar modal automáticamente al loguear con éxito
+  useEffect(() => {
+    if (perfil && modalTxt) {
+      const t = setTimeout(() => setModalTxt(null), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [perfil, modalTxt]);
+
+  const signOut = async () => {
+    const keep = ["wiTema", "cookies"];
+    const saved = keep.map(k => [k, localStorage.getItem(k)]);
+
+    await supabase.auth.signOut();
+    localStorage.clear();
+    saved.forEach(([k, v]) => v && localStorage.setItem(k as string, v));
+
+    document.cookie.split(";").forEach(c => {
+      const k = c.split("=")[0].trim();
+      if (!keep.includes(k)) document.cookie = `${k}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
+    });
+
+    router.push("/" + irSalir);
+    router.refresh();
+  };
 
   const rol = perfil?.rol || "todos";
   const cfg = NAV[rol] ?? NAV.todos;

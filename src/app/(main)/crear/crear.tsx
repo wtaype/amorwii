@@ -7,6 +7,8 @@ import Showi from "@/components/Showi";
 import Witip from "@/components/Witip";
 import { supabase } from "@/lib/supabase";
 import { linkweb } from "@/app/wii";
+import { PhonePreview } from "./_components/preview";
+import { optimizarImagen } from "./_lib/imgOptimizador";
 import "./crear.css";
 
 // Slugs reservados — rutas del sistema que no pueden usarse como link personalizado
@@ -17,12 +19,13 @@ const RESERVADAS = new Set([
 ]);
 
 // ─── Tipos ────────────────────────────────────────
-type FormState = {
+export type FormState = {
     de: string; para: string; msg: string;
     efectoId: string; fondo: string;
     musicaUrl: string; slug: string;
     plantilla: string;
-    fotos: string[];
+    fotos: string[]; // Fotos subidas localmente (blob urls en UI)
+    urlsExternas: string[]; // Links de imágenes externas (ej: imgur)
 };
 
 // ─── Hook de lógica de creación ───────────────────
@@ -38,6 +41,7 @@ function useCreator() {
         musicaUrl: "", slug: "",
         plantilla: "Amor1",
         fotos: [],
+        urlsExternas: [""], // Start with only 1 external link input
     });
 
     // Detectar sesión activa
@@ -52,39 +56,28 @@ function useCreator() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (file.size > 5 * 1024 * 1024) {
-            alert("La imagen es muy pesada (Máx 5MB para optimizar).");
+        const compressedFile = await optimizarImagen(file);
+        if (!compressedFile) return;
+
+        // Seguridad: Si no es PRO, solo permitimos slots 0 y 1
+        if (index >= 2 && !isAuth) {
+            alert("👑 Esta opción es para usuarios PRO. ¡Inicia sesión o regístrate para usar más fotos!");
             return;
         }
 
-        try {
-            const compressedFile = await imageCompression(file, {
-                maxSizeMB: 0.15, // ~150KB
-                maxWidthOrHeight: 1080,
-                useWebWorker: true,
-                fileType: 'image/webp',
-            });
+        const previewUrl = URL.createObjectURL(compressedFile);
 
-            console.log(`Original: ${(file.size / 1024).toFixed(2)} KB`);
-            console.log(`Comprimida: ${(compressedFile.size / 1024).toFixed(2)} KB`);
+        setFormState(prev => {
+            const nuevasFotos = [...prev.fotos];
+            nuevasFotos[index] = previewUrl;
+            return { ...prev, fotos: nuevasFotos };
+        });
 
-            const previewUrl = URL.createObjectURL(compressedFile);
-
-            setFormState(prev => {
-                const nuevasFotos = [...prev.fotos];
-                nuevasFotos[index] = previewUrl;
-                return { ...prev, fotos: nuevasFotos };
-            });
-
-            setArchivosFotos(prev => {
-                const nuevosArchivos = [...prev];
-                nuevosArchivos[index] = compressedFile;
-                return nuevosArchivos;
-            });
-        } catch (error) {
-            console.error("Error comprimiendo imagen:", error);
-            alert("Hubo un error al procesar la imagen.");
-        }
+        setArchivosFotos(prev => {
+            const nuevosArchivos = [...prev];
+            nuevosArchivos[index] = compressedFile;
+            return nuevosArchivos;
+        });
     };
 
     const setField = (field: keyof FormState, value: string) => {
@@ -124,16 +117,26 @@ function useCreator() {
         try {
             const slug = form.slug.trim();
 
-            // Subir fotos a Storage en paralelo
+            // SEGURIDAD: Validar límites antes de subir nada
+            if (!isAuth) {
+                // Solo permitimos máximo 2 archivos en el plan gratis
+                const totalArchivos = archivosFotos.filter(Boolean).length;
+                if (totalArchivos > 2) {
+                    throw new Error("Límite excedido: Solo puedes subir 2 fotos en el plan gratis.");
+                }
+            }
+
+            // Subir fotos a Storage en paralelo (Solo ocurre aquí, al presionar GUARDAR)
             const urlsFotos: string[] = await Promise.all(
-                archivosFotos.filter(Boolean).map(async (file, i) => {
+                archivosFotos.map(async (file, i) => {
+                    if (!file) return null;
                     const path = `${Date.now()}-${i}.webp`;
                     const { data, error } = await supabase.storage
                         .from("fotos").upload(path, file, { contentType: "image/webp", upsert: true });
                     if (error) throw error;
                     return supabase.storage.from("fotos").getPublicUrl(data.path).data.publicUrl;
                 })
-            );
+            ).then(results => results.filter((url): url is string => url !== null));
 
             // Validar slug único
             let slugFinal = slug || form.para.toLowerCase().replace(/[^a-z0-9]+/g, "");
@@ -147,13 +150,15 @@ function useCreator() {
                 slugFinal = `${slugFinal}${Math.max(...nums) + 1}`;
             }
 
-            // Insertar en tabla Sorpresas
+            // 3. Insertar en tabla Sorpresas (Juntamos fotos subidas + links externos llenos)
+            const fotosFinales = [...urlsFotos, ...form.urlsExternas.filter(u => u.trim() !== "")];
+
             const { error: insertError } = await supabase.from("Sorpresas").insert({
                 slug: slugFinal,
                 de: form.de, para: form.para, msg: form.msg,
                 plantilla: form.plantilla, fondo: form.fondo,
                 efectoId: form.efectoId, musicUrl: form.musicaUrl,
-                fotos: urlsFotos, 
+                fotos: fotosFinales,
                 userId: authUser ? authUser.id : null,
                 email: authUser ? authUser.email : null,
                 usuario: authUser ? (authUser.user_metadata?.nombre || authUser.user_metadata?.usuario || null) : null,
@@ -162,7 +167,7 @@ function useCreator() {
                 actualizado: new Date().toISOString(),
                 expira: isAuth ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             });
-            
+
             if (insertError) {
                 console.log("================= ERROR SUPABASE =================");
                 console.log(JSON.stringify(insertError, null, 2));
@@ -195,10 +200,10 @@ function useCreator() {
 
 // ─── Constantes ──────────────────────────────────
 const PLANTILLAS = [
-    { id: "Amor1", name: "Amor Clásico" },
-    { id: "Amor2", name: "Amor Moderno" },
-    { id: "Amor3", name: "Amor Minimal" },
-    { id: "Cumple1", name: "Cumpleaños" },
+    { id: "Amor1", name: "Amor Clásico", pro: false },
+    { id: "Amor2", name: "Amor Moderno", pro: false },
+    { id: "Amor3", name: "Amor Minimal", pro: false },
+    { id: "Cumple1", name: "Cumpleaños 🎂 (PRO)", pro: true },
 ];
 
 const SMART_MSGS = [
@@ -215,7 +220,7 @@ const MUSICAS = [
 
 // ─── Componentes del Formulario (Lovewi Design) ───
 
-function CardMensaje({ form, setField }: { form: FormState; setField: (f: keyof FormState, v: string) => void }) {
+function CardMensaje({ form, setField, isAuth }: { form: FormState; setField: (f: keyof FormState, v: string) => void, isAuth: boolean }) {
     return (
         <div className="cr_sec">
             <div className="cr_stit_row">
@@ -226,7 +231,15 @@ function CardMensaje({ form, setField }: { form: FormState; setField: (f: keyof 
                     <span>Plantilla:</span>
                     <select
                         value={form.plantilla}
-                        onChange={(e) => setField("plantilla", e.target.value)}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            const isProTemplate = PLANTILLAS.find(p => p.id === val)?.pro;
+                            if (isProTemplate && !isAuth) {
+                                alert("👑 Esta plantilla es exclusiva para usuarios PRO. ¡Regístrate para usarla!");
+                                return;
+                            }
+                            setField("plantilla", val);
+                        }}
                     >
                         {PLANTILLAS.map((p) => (
                             <option key={p.id} value={p.id}>{p.name}</option>
@@ -288,42 +301,99 @@ function CardMensaje({ form, setField }: { form: FormState; setField: (f: keyof 
     );
 }
 
-function CardFotos({ form, handleUploadFoto }: { form: FormState; handleUploadFoto: (i: number, e: any) => void }) {
+function CardFotos({ form, handleUploadFoto, setField, isAuth }: { form: FormState; handleUploadFoto: (i: number, e: any) => void, setField: (f: keyof FormState, v: any) => void, isAuth: boolean }) {
     const triggerInput = (i: number) => {
         document.getElementById(`foto-upload-${i}`)?.click();
+    };
+
+    const handleExternalUrlChange = (index: number, value: string) => {
+        const nuevasUrls = [...form.urlsExternas];
+        nuevasUrls[index] = value;
+        setField("urlsExternas", nuevasUrls);
+    };
+
+    const addExternalUrl = () => {
+        if (form.urlsExternas.length >= 20) return; // Límite de seguridad
+        setField("urlsExternas", [...form.urlsExternas, ""]);
     };
 
     return (
         <div className="cr_sec">
             <h3 className="cr_stit"><i className="fas fa-camera-retro" /> Fotos y Recuerdos</h3>
-            <div className="cr_fotos_grid">
-                {[0, 1, 2, 3].map((i) => (
-                    <div
-                        key={i}
-                        className={`cr_foto_slot ${i > 1 ? "premium" : ""} ${form.fotos[i] ? "has_foto" : ""}`}
-                        onClick={() => triggerInput(i)}
-                    >
-                        {i > 1 && <div className="cr_premium_badge"><i className="fas fa-crown" /></div>}
 
-                        {form.fotos[i] ? (
-                            <img src={form.fotos[i]} alt={`Foto ${i + 1}`} className="cr_foto_preview" />
-                        ) : (
-                            <div className="cr_foto_add">
-                                <i className="fas fa-plus" /><span>{i > 1 ? "Pro" : "Subir"}</span>
-                            </div>
+            <p className="cr_info_txt" style={{ marginBottom: "1.2vh" }}>
+                <i className="fas fa-cloud-upload-alt" /> Sube tus fotos (2 Gratis + 3 Pro):
+            </p>
+
+            <div className="cr_fotos_flex">
+                {[0, 1, 2, 3, 4].map((i) => {
+                    const isPro = i >= 2;
+                    return (
+                        <div
+                            key={i}
+                            className={`cr_foto_slot ${form.fotos[i] ? "has_foto" : ""} ${isPro ? "cr_pro_slot" : ""}`}
+                            onClick={() => {
+                                if (isPro && !isAuth) {
+                                    alert("👑 Esta opción es para usuarios PRO. ¡Inicia sesión o regístrate para usar más fotos!");
+                                    return;
+                                }
+                                triggerInput(i);
+                            }}
+                        >
+                            {isPro && (
+                                <div className="cr_pro_badge" title="Función PRO">
+                                    <i className="fas fa-star" />
+                                </div>
+                            )}
+
+                            {form.fotos[i] ? (
+                                <img src={form.fotos[i]} alt={`Foto ${i + 1}`} className="cr_foto_preview" />
+                            ) : (
+                                <div className="cr_foto_add">
+                                    <i className={isPro ? "fas fa-lock" : "fas fa-plus"} />
+                                    <span>{isPro ? "Pro" : "Subir"}</span>
+                                </div>
+                            )}
+                            <input
+                                id={`foto-upload-${i}`}
+                                type="file"
+                                accept="image/*"
+                                hidden
+                                onChange={(e) => handleUploadFoto(i, e)}
+                            />
+                        </div>
+                    );
+                })}
+            </div>
+
+            <p className="cr_info_txt" style={{ margin: "2.5vh 0 1vh 0" }}>
+                <i className="fas fa-link" /> O usa links externos (Pinterest, Imgur, etc):
+            </p>
+
+            <div className="cr_ext_links">
+                {form.urlsExternas.map((url, i) => (
+                    <div className="cr_ext_row" key={i}>
+                        <div className="cr_inp">
+                            <i className="fas fa-image" />
+                            <input
+                                placeholder={`Link de imagen externa ${i + 1}`}
+                                value={url}
+                                onChange={(e) => handleExternalUrlChange(i, e.target.value)}
+                            />
+                        </div>
+                        {i === form.urlsExternas.length - 1 && (
+                            <button
+                                type="button"
+                                className="cr_add_btn"
+                                onClick={addExternalUrl}
+                                title="Agregar otro link"
+                            >
+                                <i className="fas fa-plus" />
+                            </button>
                         )}
-
-                        <input
-                            id={`foto-upload-${i}`}
-                            type="file"
-                            accept="image/*"
-                            hidden
-                            onChange={(e) => handleUploadFoto(i, e)}
-                        />
                     </div>
                 ))}
             </div>
-            <p className="cr_info_txt"><i className="fas fa-bolt" /> 2 fotos gratis. Optimizadas en tu navegador para ser súper rápidas.</p>
         </div>
     );
 }
@@ -483,37 +553,6 @@ function CardLinks({ form, setField, guardar, loading, urlLarga, urlCorta, copia
     );
 }
 
-// ─── Vista Previa ─────────────────────────────────
-function PhonePreview({ form }: { form: FormState }) {
-    const getPhoneBg = () => {
-        switch (form.fondo) {
-            case "2": return "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)";
-            case "3": return "linear-gradient(to top, #ff0844 0%, #ffb199 100%)";
-            default: return "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)";
-        }
-    };
-
-    return (
-        <div className="cr_prev">
-            <div className="cr_prev_cab">
-                <h3><i className="fas fa-eye" /> Vista previa</h3>
-            </div>
-            <div className="cr_marco" style={{ background: getPhoneBg() }}>
-                <div className="cr_mini">
-                    <div className="pv_cor"><i className="far fa-heart" /></div>
-                    <h2 className="pv_nom">Para {form.para || "Sofía"}</h2>
-                    <p className="pv_msg">"{form.msg || "Cada día que pasa me doy cuenta de lo afortunado que soy de tenerte a mi lado. Esta pequeña sorpresa es solo un reflejo de lo mucho que te amo."}"</p>
-                    {form.de && <p className="pv_de">De: <span>{form.de}</span></p>}
-                    <div className="pv_music">
-                        <i className="fas fa-play" />
-                    </div>
-                    <span className="pv_music_lbl">{form.musicaUrl ? "MÚSICA SELECCIONADA" : "SIN MÚSICA"}</span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 // ─── Componente principal ─────────────────────────
 export function CrearForm() {
     const creator = useCreator();
@@ -529,8 +568,8 @@ export function CrearForm() {
 
             <div className="crear">
                 <div className="cr_izq">
-                    <Showi><CardMensaje form={form} setField={setField} /></Showi>
-                    <Showi><CardFotos form={form} handleUploadFoto={creator.handleUploadFoto} /></Showi>
+                    <Showi><CardMensaje form={form} setField={setField} isAuth={creator.isAuth} /></Showi>
+                    <Showi><CardFotos form={form} handleUploadFoto={creator.handleUploadFoto} setField={setField} isAuth={creator.isAuth} /></Showi>
                     <Showi><CardMusica form={form} setField={setField} /></Showi>
                     <Showi><CardDiseno form={form} setField={setField} /></Showi>
                     <Showi><CardLinks {...creator} /></Showi>

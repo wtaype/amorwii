@@ -63,19 +63,34 @@
 .cr_sbtn:active { transform: translateY(0); }
 
 /* === FOTOS === */
-.cr_fotos_grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2vh; margin-bottom: 1.2vh; }
-.cr_foto_slot { aspect-ratio: 1/1; background: var(--bg); border: 2px dashed var(--brd); border-radius: 1vh; display: flex; align-items: center; justify-content: center; position: relative; transition: all .3s; cursor: pointer; overflow: hidden; }
+.cr_fotos_flex { display: flex; gap: 1vh; margin-bottom: 1.5vh; width: 100%; }
+.cr_foto_slot { flex: 1; aspect-ratio: 1/1; background: var(--bg); border: 2px dashed var(--brd); border-radius: 1vh; display: flex; align-items: center; justify-content: center; position: relative; transition: all .3s; cursor: pointer; overflow: hidden; min-width: 0; }
 .cr_foto_slot.has_foto { border-style: solid; border-color: transparent; }
-.cr_foto_slot:hover { border-color: var(--mco); background: color-mix(in srgb, var(--mco) 3%, var(--bg)); }
-.cr_foto_add { display: flex; flex-direction: column; align-items: center; gap: .5vh; color: var(--tx3); font-size: var(--fz_s4); font-weight: 600; }
-.cr_foto_add i { font-size: var(--fz_m3); color: var(--brd); transition: all .3s; }
-.cr_foto_slot:hover .cr_foto_add i { color: var(--mco); transform: scale(1.1); }
+.cr_foto_slot:hover { border-color: var(--mco); background: color-mix(in srgb, var(--mco) 3%, var(--bg)); transform: translateY(-2px); }
+
+.cr_pro_slot { border-color: color-mix(in srgb, var(--mco) 15%, var(--brd)); background: color-mix(in srgb, var(--mco) 2%, var(--bg)); border-style: solid; }
+.cr_pro_slot:hover { border-color: var(--mco); }
+
+.cr_pro_badge { position: absolute; top: .5vh; right: .5vh; background: var(--mco); color: #fff; width: 1.8vh; height: 1.8vh; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; z-index: 2; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+
+.cr_foto_add { display: flex; flex-direction: column; align-items: center; gap: .4vh; color: var(--tx3); font-size: 0.75rem; font-weight: 700; }
+.cr_foto_add i { font-size: 1.2rem; color: var(--brd); transition: all .3s; }
+.cr_pro_slot .cr_foto_add i { color: color-mix(in srgb, var(--mco) 30%, var(--brd)); }
+.cr_foto_slot:hover .cr_foto_add i { color: var(--mco); }
+
 .cr_foto_preview { width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: all .3s; }
-.cr_foto_slot:hover .cr_foto_preview { transform: scale(1.05); filter: brightness(0.9); }
-.cr_premium_badge { position: absolute; top: .6vh; right: .6vh; background: linear-gradient(135deg, #ffd700, #ffa500); color: #fff; width: 2vh; height: 2vh; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--fz_s5); box-shadow: 0 2px 4px rgba(0,0,0,.15); z-index: 2; }
-.cr_foto_slot.premium { border-style: solid; opacity: 0.8; }
-.cr_info_txt { font-size: var(--fz_s4); color: var(--tx3); margin: 0; display: flex; align-items: center; gap: .6vh; line-height: 1.4; opacity: 0.9; }
-.cr_info_txt i { color: var(--mco); font-size: 1.2vh; }
+.cr_foto_slot:hover .cr_foto_preview { transform: scale(1.08); }
+
+.cr_info_txt { font-size: 0.78rem; color: var(--tx3); margin: 0; display: flex; align-items: center; gap: .6vh; line-height: 1.4; }
+.cr_info_txt i { color: var(--mco); font-size: 0.9rem; }
+
+/* === EXTERNAL LINKS === */
+.cr_ext_links { display: flex; flex-direction: column; gap: .8vh; }
+.cr_ext_row { display: flex; gap: .8vh; align-items: center; width: 100%; }
+.cr_ext_row .cr_inp { flex: 1; }
+.cr_add_btn { width: 4.4vh; height: 4.4vh; border-radius: .9vh; border: 1.5px solid var(--brd); background: var(--wb); color: var(--mco); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; font-size: 1.1rem; flex-shrink: 0; }
+.cr_add_btn:hover { background: var(--mco); color: #fff; border-color: var(--mco); transform: scale(1.05); }
+.cr_add_btn:active { transform: scale(0.95); }
 
 /* === CHIPS (Music selector / Effects / Backgrounds) === */
 .cr_chips { display: flex; flex-wrap: wrap; gap: .5vh; margin-bottom: .6vh; }
