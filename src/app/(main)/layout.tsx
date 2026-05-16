@@ -46,23 +46,7 @@ export const viewport: Viewport = {
   themeColor: defaultThemeColor,
 };
 
-const themeScript = `
-  (function() {
-    try {
-      var savedTheme = localStorage.getItem('wiTema');
-      if (savedTheme) {
-        var parts = savedTheme.split('|');
-        var name = parts[0];
-        var color = parts[1];
-        document.documentElement.setAttribute('data-theme', name);
-        var meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.content = color;
-      } else {
-        document.documentElement.setAttribute('data-theme', '${wii.color}');
-      }
-    } catch (e) {}
-  })();
-`;
+const themeScript = `(function(){try{var t=localStorage.getItem('wiTema');if(t){var p=t.split('|');document.documentElement.setAttribute('data-theme',p[0]);var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=p[1]}else{document.documentElement.setAttribute('data-theme','${wii.color}')}}catch(e){}})();`;
 
 export default async function RootLayout({
   children,
