@@ -71,7 +71,7 @@ export default function SidebarPost({ post }: SidebarProps) {
           <i className="fa-solid fa-screwdriver-wrench"></i> Administración
         </h3>
         <div className="po_admin_actions">
-          <Link href={`/blog/editar/${post.slug}`} className="po_admin_btn_edit">
+          <Link href={`/nuevo?edit=${post.slug}`} className="po_admin_btn_edit">
             <i className="fa-solid fa-edit"></i> Editar Historia
           </Link>
         </div>

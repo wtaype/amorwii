@@ -1,18 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Mensaje } from "@/components/Mensaje";
 import { mdAHtml } from "../_lib/conversorMd";
 import "./nuevo.css";
 
-// ── CONFIG ────────────────────────────────────────────────────
-const irPagina = "blog"; 
-
-export default function NuevoPostPage() {
+function NuevoPostContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Detectar si estamos en modo edición
+  const editSlug = searchParams.get("edit");
+
   const [cargando, setCargando] = useState(false);
+  const [cargandoDatos, setCargandoDatos] = useState(false);
   const [vista, setVista] = useState<"edit" | "prev">("edit");
   
   // Estado del Formulario
@@ -32,9 +35,50 @@ export default function NuevoPostPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInp, setTagInp] = useState("");
 
-  // Generar Slug automáticamente desde el título
+  // FASE EDICIÓN: Cargar datos del post existente si ?edit=slug está presente
   useEffect(() => {
-    if (form.titulo) {
+    async function cargarPost() {
+      if (!editSlug) return;
+      setCargandoDatos(true);
+      try {
+        const { data, error } = await supabase
+          .from("blog")
+          .select("*")
+          .eq("slug", editSlug)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          setForm({
+            titulo: data.titulo || "",
+            slug: data.slug || "",
+            resumen: data.resumen || "",
+            keywords: data.keywords || "",
+            contenidoMd: data.contenidoMd || "",
+            categoria: data.categoria || "",
+            imagen: data.imagen || "",
+            imagenTop: data.imagenTop || "",
+            activo: data.activo ?? true,
+            pin: data.pin ?? false
+          });
+          setTags(data.tags || []);
+        } else {
+          Mensaje("No se encontró la historia para editar", "warning");
+        }
+      } catch (err: any) {
+        console.error("Error al cargar post para edición:", err);
+        Mensaje("Error al cargar los datos del post", "error");
+      } finally {
+        setCargandoDatos(false);
+      }
+    }
+    cargarPost();
+  }, [editSlug]);
+
+  // Generar Slug automáticamente desde el título (Solo cuando estamos CREANDO un post nuevo)
+  useEffect(() => {
+    if (!editSlug && form.titulo) {
       const slug = form.titulo
         .toLowerCase()
         .normalize("NFD")
@@ -44,7 +88,7 @@ export default function NuevoPostPage() {
         .slice(0, 50);
       setForm(p => ({ ...p, slug }));
     }
-  }, [form.titulo]);
+  }, [form.titulo, editSlug]);
 
   // Manejar cambios en inputs
   const change = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -67,7 +111,7 @@ export default function NuevoPostPage() {
 
   const removeTag = (index: number) => setTags(tags.filter((_, i) => i !== index));
 
-  // PUBLICAR
+  // PUBLICAR O GUARDAR CAMBIOS
   const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cargando) return;
@@ -82,7 +126,7 @@ export default function NuevoPostPage() {
       const html = mdAHtml(form.contenidoMd);
       const { data: { user } } = await supabase.auth.getUser();
 
-      const nuevoPost = {
+      const datosPost = {
         ...form,
         contenido: html,
         tags,
@@ -90,41 +134,75 @@ export default function NuevoPostPage() {
         usuario: user?.id,
         email: user?.email,
         tiempoLectura: `${Math.max(1, Math.ceil(form.contenidoMd.split(/\s+/).length / 200))} min`,
-        creado: new Date().toISOString(),
         actualizado: new Date().toISOString()
       };
 
-      const { error } = await supabase.from("blog").insert(nuevoPost);
-      if (error) throw error;
+      if (editSlug) {
+        // MODO EDICIÓN: UPDATE
+        const { error } = await supabase
+          .from("blog")
+          .update(datosPost)
+          .eq("slug", editSlug);
+        
+        if (error) throw error;
+        Mensaje("¡Historia actualizada con éxito! 🐾✨", "success");
+      } else {
+        // MODO NUEVO: INSERT
+        const { error } = await supabase
+          .from("blog")
+          .insert({
+            ...datosPost,
+            creado: new Date().toISOString()
+          });
+        
+        if (error) throw error;
+        Mensaje("¡Historia publicada con éxito! 🐾✨", "success");
+      }
 
-      Mensaje("¡Historia publicada con éxito! 🐾✨", "success");
-      router.push(`/${irPagina}/${form.slug}`);
+      // Redireccionar al post limpio en la raíz
+      router.push(`/${form.slug}`);
       
     } catch (err: any) {
-      Mensaje(err.message || "Error al publicar", "error");
+      Mensaje(err.message || "Error al guardar la historia", "error");
     } finally {
       setCargando(false);
     }
   };
 
+  if (cargandoDatos) {
+    return (
+      <div className="nu_wrap dpvc" style={{ minHeight: "60vh", gap: "2vh" }}>
+        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "3rem", color: "var(--mco)" }}></i>
+        <h3>Cargando datos de la historia...</h3>
+      </div>
+    );
+  }
+
   return (
     <div className="nu_wrap">
       <div className="nu_head">
         <div className="nu_head_left">
-          <h1><i className="fa-solid fa-pen-fancy"></i> Nueva historia</h1>
-          <p>Crea contenido que inspire a la comunidad AmorWii</p>
+          <h1>
+            <i className={`fa-solid ${editSlug ? "fa-pen-to-square" : "fa-pen-fancy"}`}></i>{" "}
+            {editSlug ? "Editar historia" : "Nueva historia"}
+          </h1>
+          <p>
+            {editSlug 
+              ? "Modifica tu contenido para que siga inspirando a la comunidad" 
+              : "Crea contenido que inspire a la comunidad AmorWii"}
+          </p>
         </div>
         <div className="nu_head_right">
           <button type="submit" form="nu_form" className="nu_btn_submit" disabled={cargando}>
             <i className={`fa-solid ${cargando ? "fa-spinner fa-spin" : "fa-paper-plane"}`}></i>
-            {cargando ? "Publicando..." : "Publicar ahora"}
+            {cargando ? "Guardando..." : editSlug ? "Guardar cambios" : "Publicar ahora"}
           </button>
         </div>
       </div>
 
       <form id="nu_form" onSubmit={enviar} className="nu_layout">
         <div className="nu_left">
-          {/* Título y Slug */}
+          {/* Título y Enlace */}
           <div className="nu_card">
             <div className="nu_card_title"><i className="fa-solid fa-heading"></i> Título y Enlace</div>
             <input 
@@ -137,7 +215,7 @@ export default function NuevoPostPage() {
               required
             />
             <div className="nu_slug_box">
-              <span className="nu_slug_label"><i className="fa-solid fa-link"></i> amorwii.com/blog/</span>
+              <span className="nu_slug_label"><i className="fa-solid fa-link"></i> amorwii.com/</span>
               <input id="nu_slug" type="text" value={form.slug} onChange={change} placeholder="url_amigable" required />
             </div>
           </div>
@@ -238,5 +316,18 @@ export default function NuevoPostPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function NuevoPostPage() {
+  return (
+    <Suspense fallback={
+      <div className="nu_wrap dpvc" style={{ minHeight: "60vh", gap: "2vh" }}>
+        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "3rem", color: "var(--mco)" }}></i>
+        <h3>Cargando editor inteligente...</h3>
+      </div>
+    }>
+      <NuevoPostContent />
+    </Suspense>
   );
 }
