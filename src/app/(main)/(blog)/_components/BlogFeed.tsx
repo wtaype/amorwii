@@ -27,7 +27,7 @@ export default function BlogFeed({ initialPosts }: BlogFeedProps) {
     return initialPosts.filter(p => {
       const cumpleCat = catActiva === "Todas" || p.categoria === catActiva;
       const cumpleBusq = p.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
-        p.resumen.toLowerCase().includes(busqueda.toLowerCase());
+        p.descripcion.toLowerCase().includes(busqueda.toLowerCase());
       return cumpleCat && cumpleBusq;
     });
   }, [initialPosts, busqueda, catActiva]);

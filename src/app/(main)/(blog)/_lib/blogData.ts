@@ -9,37 +9,35 @@ export interface Post {
   id: string;
   slug: string;
   titulo: string;
-  resumen: string;
-  keywords: string;
-  contenido: string;      // HTML renderizado
-  contenidoMd: string;    // Markdown fuente
+  descripcion: string;
+  contenido?: string;      // HTML renderizado (Opcional en listas)
+  contenidoMD?: string;    // Markdown fuente (Opcional en listas)
   categoria: string;
   tags: string[];
-  imagen: string;         // Miniatura
-  imagenTop: string;      // Banner superior
-  imagenAlt: string;
+  imagen: string | null;         // Miniatura
+  imagenTop: string | null;      // Banner superior
+  metaSEO: Record<string, any>;  // Metadatos SEO (JSONB)
   vistas: number;
   likes: number;
   pin: boolean;
   activo: boolean;
   autor: string;
-  usuario: string;
-  email: string;
-  tiempoLectura: string;
+  userId: string | null;
+  lecturaTM: string | null;
   creado: string;
   actualizado: string;
 }
 
 /**
- * TRAER POSTS
- * Obtiene la lista de posts activos ordenados por fecha de creación.
- * Usa cache() de React para evitar múltiples peticiones en un mismo render.
+ * TRAER POSTS (Modo Súper Veloz 0ms)
+ * Solo trae los campos esenciales para las tarjetas.
+ * EXCLUYE: contenido, contenidoMD, buscador tsvector.
  */
 export const traerPosts = cache(async () => {
   try {
     const { data, error } = await supabase
       .from('blog')
-      .select('*')
+      .select('id, slug, titulo, descripcion, categoria, tags, imagen, imagenTop, metaSEO, vistas, likes, pin, activo, autor, "userId", "lecturaTM", creado, actualizado')
       .eq('activo', true)
       .order('creado', { ascending: false });
 
@@ -55,14 +53,15 @@ export const traerPosts = cache(async () => {
 });
 
 /**
- * TRAER POST POR SLUG
- * Obtiene un único post basado en su slug (URL amigable).
+ * TRAER POST POR SLUG (Detalle Completo)
+ * Trae TODO incluyendo el contenido HTML.
+ * EXCLUYE: buscador tsvector.
  */
 export const traerPost = cache(async (slug: string) => {
   try {
     const { data, error } = await supabase
       .from('blog')
-      .select('*')
+      .select('id, slug, titulo, descripcion, contenido, "contenidoMD", categoria, tags, imagen, "imagenTop", "metaSEO", vistas, likes, pin, activo, autor, "userId", "lecturaTM", creado, actualizado')
       .eq('slug', slug)
       .maybeSingle();
 
@@ -78,24 +77,22 @@ export const traerPost = cache(async (slug: string) => {
 });
 
 /**
- * INCREMENTAR VISTAS
- * Llama a la función RPC de Supabase para sumar 1 vista de forma atómica.
+ * INCREMENTAR VISTAS (RPC)
  */
 export async function sumarVista(slug: string) {
   try {
-    await supabase.rpc('increment_vistas', { post_slug: slug });
+    await supabase.rpc('incrementar_vistas_blog', { post_slug: slug });
   } catch (err) {
     console.warn("No se pudo incrementar vistas:", err);
   }
 }
 
 /**
- * INCREMENTAR LIKES
- * Llama a la función RPC de Supabase para sumar 1 like de forma atómica.
+ * INCREMENTAR LIKES (RPC)
  */
 export async function sumarLike(slug: string) {
   try {
-    await supabase.rpc('increment_likes', { post_slug: slug });
+    await supabase.rpc('incrementar_likes_blog', { post_slug: slug });
   } catch (err) {
     console.warn("No se pudo incrementar likes:", err);
   }

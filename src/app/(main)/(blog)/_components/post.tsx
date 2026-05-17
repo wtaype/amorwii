@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Post, sumarVista, sumarLike } from "../_lib/blogData";
 import { fechaHumana } from "../_lib/formatoFechas";
@@ -9,6 +9,7 @@ import SidebarPost from "../_components/sidebarPost";
 import CajaComentarios from "../_components/CajaComentarios";
 import LeerProgreso from "../_components/LeerProgreso";
 import TablaDeContenidos from "../_components/TablaDeContenidos";
+import MarkdownPro from "../_components/MarkdownPro";
 import "./post.css";
 
 interface PostViewerProps {
@@ -21,10 +22,27 @@ interface PostViewerProps {
  */
 export default function PostViewer({ post }: PostViewerProps) {
   
-  // Sumar vista al entrar
+  // Estados para Optimistic UI (Likes)
+  const [optimisticLikes, setOptimisticLikes] = useState(post.likes || 0);
+  const [liked, setLiked] = useState(false);
+
+  // Comprobar si ya le dio like y sumar vista
   useEffect(() => {
     sumarVista(post.slug);
+    if (localStorage.getItem(`like_${post.slug}`)) {
+      setLiked(true);
+    }
   }, [post.slug]);
+
+  const handleLike = async () => {
+    if (liked) return;
+    
+    setLiked(true);
+    setOptimisticLikes(prev => prev + 1);
+    localStorage.setItem(`like_${post.slug}`, "true");
+    
+    await sumarLike(post.slug);
+  };
 
   return (
     <>
@@ -39,8 +57,8 @@ export default function PostViewer({ post }: PostViewerProps) {
               {/* Hero Imagen */}
               <div className="po_hero">
                 <img 
-                  src={post.imagenTop || post.imagen} 
-                  alt={post.imagenAlt || post.titulo} 
+                  src={post.imagenTop || post.imagen || ""} 
+                  alt={post.metaSEO?.alt || post.titulo} 
                   className="po_hero_img"
                 />
                 <div className="po_hero_over">
@@ -57,24 +75,21 @@ export default function PostViewer({ post }: PostViewerProps) {
               {/* Header */}
               <header className="po_header">
                 <h1 className="po_titulo">{post.titulo}</h1>
-                <p className="po_resumen">{post.resumen}</p>
+                <p className="po_resumen">{post.descripcion}</p>
                 
                 <div className="po_meta">
                   <span title="Autor"><i className="fa-solid fa-pen-nib"></i> {post.autor}</span>
                   <span title="Fecha"><i className="fa-solid fa-calendar-day"></i> {fechaHumana(post.creado)}</span>
-                  <span title="Lectura estimada"><i className="fa-solid fa-clock"></i> {post.tiempoLectura}</span>
+                  <span title="Lectura estimada"><i className="fa-solid fa-clock"></i> {post.lecturaTM}</span>
                   <span title="Vistas"><i className="fa-solid fa-eye"></i> {post.vistas}</span>
                 </div>
               </header>
 
               {/* ÍNDICE DINÁMICO (Se muestra solo si hay varios títulos) */}
-              <TablaDeContenidos contenido={post.contenido} />
+              <TablaDeContenidos contenido={post.contenidoMD || ""} />
 
-              {/* Contenido HTML */}
-              <main 
-                className="po_contenido" 
-                dangerouslySetInnerHTML={{ __html: post.contenido }} 
-              />
+              {/* Contenido Renderizado por AST (MarkdownPro) */}
+              <MarkdownPro contenido={post.contenidoMD || ""} />
 
               {/* Footer */}
               <footer className="po_footer_info">
@@ -89,16 +104,11 @@ export default function PostViewer({ post }: PostViewerProps) {
                 <div className="po_share">
                   <span>
                     <button 
-                      className="po_like_btn" 
-                      onClick={async (e) => {
-                        const btn = e.currentTarget;
-                        if (localStorage.getItem(`like_${post.slug}`)) return;
-                        await sumarLike(post.slug);
-                        localStorage.setItem(`like_${post.slug}`, "true");
-                        btn.classList.add("active");
-                      }}
+                      className={`po_like_btn ${liked ? "active" : ""}`}
+                      onClick={handleLike}
+                      disabled={liked}
                     >
-                      <i className="fa-solid fa-heart"></i> Me gusta
+                      <i className="fa-solid fa-heart"></i> {optimisticLikes} {optimisticLikes === 1 ? "Me gusta" : "Me gustas"}
                     </button>
                     ¡Comparte esperanza!
                   </span>

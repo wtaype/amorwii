@@ -15,8 +15,8 @@ export function TarjetaBlog({ post }: { post: Post }) {
     <Link href={`/${post.slug}`} className="bl_card po_fade po_visible">
       <div className="bl_card_img">
         <img
-          src={post.imagen}
-          alt={post.imagenAlt || post.titulo}
+          src={post.imagen || ""}
+          alt={post.metaSEO?.alt || post.titulo}
           loading="lazy"
         />
         <div className="bl_card_over">
@@ -33,7 +33,7 @@ export function TarjetaBlog({ post }: { post: Post }) {
 
       <div className="bl_card_body">
         <h3 className="bl_card_tit">{post.titulo}</h3>
-        <p className="bl_card_res">{post.resumen}</p>
+        <p className="bl_card_res">{post.descripcion}</p>
 
         <div className="bl_card_footer">
           <div className="bl_card_meta">

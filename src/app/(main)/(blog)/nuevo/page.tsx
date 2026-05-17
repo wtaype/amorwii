@@ -4,27 +4,28 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Mensaje } from "@/components/Mensaje";
-import { mdAHtml } from "../_lib/conversorMd";
+import MarkdownPro from "../_components/MarkdownPro";
 import "./nuevo.css";
 
 function NuevoPostContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // Detectar si estamos en modo edición
   const editSlug = searchParams.get("edit");
 
   const [cargando, setCargando] = useState(false);
   const [cargandoDatos, setCargandoDatos] = useState(false);
   const [vista, setVista] = useState<"edit" | "prev">("edit");
-  
+
   // Estado del Formulario
   const [form, setForm] = useState({
     titulo: "",
     slug: "",
-    resumen: "",
-    keywords: "",
-    contenidoMd: "",
+    descripcion: "", // Antes resumen
+    keywords: "", // Solo para UI, se guardará en metaSEO
+    alt_img: "", // Solo para UI, se guardará en metaSEO
+    contenidoMD: "", // camelCase
     categoria: "",
     imagen: "",
     imagenTop: "",
@@ -34,6 +35,9 @@ function NuevoPostContent() {
 
   const [tags, setTags] = useState<string[]>([]);
   const [tagInp, setTagInp] = useState("");
+
+  // Ref para el textarea (para insertar texto en el cursor)
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // FASE EDICIÓN: Cargar datos del post existente si ?edit=slug está presente
   useEffect(() => {
@@ -53,9 +57,10 @@ function NuevoPostContent() {
           setForm({
             titulo: data.titulo || "",
             slug: data.slug || "",
-            resumen: data.resumen || "",
-            keywords: data.keywords || "",
-            contenidoMd: data.contenidoMd || "",
+            descripcion: data.descripcion || "",
+            keywords: data.metaSEO?.keywords || "",
+            alt_img: data.metaSEO?.alt || "",
+            contenidoMD: data.contenidoMD || "",
             categoria: data.categoria || "",
             imagen: data.imagen || "",
             imagenTop: data.imagenTop || "",
@@ -97,6 +102,25 @@ function NuevoPostContent() {
     setForm(p => ({ ...p, [id.replace("nu_", "")]: val }));
   };
 
+  // Función para insertar texto en el cursor
+  const insertAtCursor = (textToInsert: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = form.contenidoMD;
+
+    const newText = text.substring(0, start) + textToInsert + text.substring(end);
+    setForm(p => ({ ...p, contenidoMD: newText }));
+
+    // Devolver el foco y mover el cursor después del texto insertado
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + textToInsert.length, start + textToInsert.length);
+    }, 0);
+  };
+
   // Manejar Tags
   const addTag = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === ",") {
@@ -115,25 +139,36 @@ function NuevoPostContent() {
   const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cargando) return;
-    
-    if (!form.titulo || !form.slug || !form.contenidoMd || !form.categoria) {
+
+    if (!form.titulo || !form.slug || !form.contenidoMD || !form.categoria) {
       Mensaje("Completa los campos obligatorios", "warning");
       return;
     }
 
     setCargando(true);
     try {
-      const html = mdAHtml(form.contenidoMd);
       const { data: { user } } = await supabase.auth.getUser();
 
+      const metaSEO = {
+        keywords: form.keywords,
+        alt: form.alt_img || form.titulo
+      };
+
       const datosPost = {
-        ...form,
-        contenido: html,
+        titulo: form.titulo,
+        slug: form.slug,
+        descripcion: form.descripcion,
+        contenidoMD: form.contenidoMD,
+        categoria: form.categoria,
+        imagen: form.imagen,
+        imagenTop: form.imagenTop,
+        activo: form.activo,
+        pin: form.pin,
+        metaSEO: metaSEO,
         tags,
         autor: user?.user_metadata?.nombre || "Admin",
-        usuario: user?.id,
-        email: user?.email,
-        tiempoLectura: `${Math.max(1, Math.ceil(form.contenidoMd.split(/\s+/).length / 200))} min`,
+        userId: user?.id,
+        lecturaTM: `${Math.max(1, Math.ceil(form.contenidoMD.split(/\s+/).length / 200))} min`,
         actualizado: new Date().toISOString()
       };
 
@@ -143,7 +178,7 @@ function NuevoPostContent() {
           .from("blog")
           .update(datosPost)
           .eq("slug", editSlug);
-        
+
         if (error) throw error;
         Mensaje("¡Historia actualizada con éxito! 🐾✨", "success");
       } else {
@@ -154,14 +189,14 @@ function NuevoPostContent() {
             ...datosPost,
             creado: new Date().toISOString()
           });
-        
+
         if (error) throw error;
         Mensaje("¡Historia publicada con éxito! 🐾✨", "success");
       }
 
       // Redireccionar al post limpio en la raíz
       router.push(`/${form.slug}`);
-      
+
     } catch (err: any) {
       Mensaje(err.message || "Error al guardar la historia", "error");
     } finally {
@@ -187,8 +222,8 @@ function NuevoPostContent() {
             {editSlug ? "Editar historia" : "Nueva historia"}
           </h1>
           <p>
-            {editSlug 
-              ? "Modifica tu contenido para que siga inspirando a la comunidad" 
+            {editSlug
+              ? "Modifica tu contenido para que siga inspirando a la comunidad"
               : "Crea contenido que inspire a la comunidad AmorWii"}
           </p>
         </div>
@@ -205,11 +240,11 @@ function NuevoPostContent() {
           {/* Título y Enlace */}
           <div className="nu_card">
             <div className="nu_card_title"><i className="fa-solid fa-heading"></i> Título y Enlace</div>
-            <input 
-              id="nu_titulo" 
-              type="text" 
-              className="nu_titulo_inp" 
-              placeholder="Escribe un título impactante..." 
+            <input
+              id="nu_titulo"
+              type="text"
+              className="nu_titulo_inp"
+              placeholder="Escribe un título impactante..."
               value={form.titulo}
               onChange={change}
               required
@@ -223,39 +258,62 @@ function NuevoPostContent() {
           {/* SEO Grid */}
           <div className="nu_grid_seo">
             <div className="nu_card">
-              <div className="nu_card_title"><i className="fa-solid fa-align-left"></i> Resumen (SEO)</div>
-              <textarea id="nu_resumen" value={form.resumen} onChange={change} rows={3} placeholder="Describe brevemente la historia..." maxLength={160} required />
-              <div className="nu_counter">{form.resumen.length}/160</div>
+              <div className="nu_card_title"><i className="fa-solid fa-align-left"></i> Descripción (SEO)</div>
+              <textarea id="nu_descripcion" value={form.descripcion} onChange={change} rows={3} placeholder="Describe brevemente la historia..." maxLength={160} required />
+              <div className="nu_counter">{form.descripcion.length}/160</div>
             </div>
             <div className="nu_card">
-              <div className="nu_card_title"><i className="fa-solid fa-search"></i> Keywords</div>
-              <textarea id="nu_keywords" value={form.keywords} onChange={change} rows={3} placeholder="amor, fe, esperanza..." />
+              <div className="nu_card_title"><i className="fa-solid fa-search"></i> Metadatos</div>
+              <input id="nu_keywords" type="text" value={form.keywords} onChange={change} placeholder="Keywords (ej: amor, pareja)" style={{ marginBottom: "1vh" }} />
+              <input id="nu_alt_img" type="text" value={form.alt_img} onChange={change} placeholder="Alt Imagen (ej: Pareja feliz)" />
             </div>
           </div>
 
-          {/* Editor Markdown */}
-          <div className="nu_card nu_card_editor">
+          {/* Editor Markdown Split-Pane */}
+          <div className="nu_card nu_card_editor" style={{ gridColumn: "1 / -1" }}>
             <div className="nu_card_title_row">
-              <span><i className="fa-solid fa-code"></i> Contenido Markdown</span>
-              <div className="nu_editor_tabs">
-                <button type="button" className={`nu_tab ${vista === "edit" ? "active" : ""}`} onClick={() => setVista("edit")}>Editor</button>
-                <button type="button" className={`nu_tab ${vista === "prev" ? "active" : ""}`} onClick={() => setVista("prev")}>Vista Previa</button>
+              <span><i className="fa-solid fa-code"></i> Editor Interactivo Pro</span>
+            </div>
+
+            {/* Toolbar */}
+            <div style={{ display: "flex", gap: "10px", padding: "10px", background: "rgba(255,255,255,0.05)", borderRadius: "12px 12px 0 0", borderBottom: "1px solid rgba(255,255,255,0.1)", flexWrap: "wrap" }}>
+              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("**Negrita**")}><b>B</b></button>
+              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("*Cursiva*")}><i>I</i></button>
+              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("## ")}>H2</button>
+              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("![AltTexto](url_imagen)")}><i className="fa-solid fa-image"></i></button>
+              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("[Texto_Link](https://)")}><i className="fa-solid fa-link"></i></button>
+              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem", background: "rgba(59, 130, 246, 0.2)", color: "#60A5FA" }} onClick={() => insertAtCursor("\n<witip tipo=\"info\">\nEscribe tu consejo aquí...\n</witip>\n")}><i className="fa-solid fa-lightbulb"></i> WiTip</button>
+              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem", background: "rgba(255, 92, 105, 0.2)", color: "#FF5C69" }} onClick={() => insertAtCursor("\n<modal titulo=\"Ver contenido oculto\">\nContenido secreto...\n</modal>\n")}><i className="fa-solid fa-eye"></i> Modal</button>
+            </div>
+
+            <div style={{ display: "flex", gap: "20px", padding: "15px", flexDirection: "row", alignItems: "stretch", flexWrap: "wrap" }}>
+              {/* Lado Izquierdo: Textarea */}
+              <div style={{ flex: "1 1 45%", minWidth: "300px", display: "flex", flexDirection: "column" }}>
+                <textarea
+                  id="nu_contenidoMD"
+                  ref={textareaRef}
+                  className="nu_code"
+                  value={form.contenidoMD}
+                  onChange={change}
+                  style={{ flex: 1, minHeight: "500px", borderRadius: "0 0 12px 12px", borderTop: "none" }}
+                  placeholder="Escribe tu historia aquí usando Markdown y los atajos mágicos... ✨"
+                  required
+                />
+              </div>
+
+              {/* Lado Derecho: Live Preview */}
+              <div style={{ flex: "1 1 45%", minWidth: "300px", background: "rgba(0,0,0,0.15)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "20px", maxHeight: "500px", overflowY: "auto" }}>
+                <div style={{ fontSize: "0.8rem", color: "var(--tx)", opacity: 0.5, marginBottom: "10px", textTransform: "uppercase", letterSpacing: "1px" }}>Vista Previa en Vivo 🔴</div>
+                {form.contenidoMD ? (
+                  <MarkdownPro contenido={form.contenidoMD} />
+                ) : (
+                  <div style={{ textAlign: "center", opacity: 0.3, marginTop: "100px" }}>
+                    <i className="fa-solid fa-pen-nib" style={{ fontSize: "3rem", marginBottom: "10px" }}></i>
+                    <p>Empieza a escribir para ver la magia...</p>
+                  </div>
+                )}
               </div>
             </div>
-            
-            {vista === "edit" ? (
-              <textarea 
-                id="nu_contenidoMd" 
-                className="nu_code" 
-                value={form.contenidoMd} 
-                onChange={change} 
-                rows={15} 
-                placeholder="Escribe usando Markdown... ## Título, **Negrita**, [Link](url)" 
-                required
-              />
-            ) : (
-              <div className="nu_html_prev po_contenido" dangerouslySetInnerHTML={{ __html: mdAHtml(form.contenidoMd) }} />
-            )}
           </div>
         </div>
 
@@ -283,12 +341,12 @@ function NuevoPostContent() {
 
           <div className="nu_card">
             <div className="nu_card_title"><i className="fa-solid fa-tags"></i> Tags</div>
-            <input 
-              type="text" 
-              value={tagInp} 
-              onChange={(e) => setTagInp(e.target.value)} 
-              onKeyDown={addTag} 
-              placeholder="Presiona coma o enter..." 
+            <input
+              type="text"
+              value={tagInp}
+              onChange={(e) => setTagInp(e.target.value)}
+              onKeyDown={addTag}
+              placeholder="Presiona coma o enter..."
             />
             <div className="nu_tags_box">
               {tags.map((t, i) => (

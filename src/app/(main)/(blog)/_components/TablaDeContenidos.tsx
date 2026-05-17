@@ -16,16 +16,28 @@ export default function TablaDeContenidos({ contenido }: { contenido: string }) 
   const [items, setItems] = useState<ItemIndice[]>([]);
 
   useEffect(() => {
-    // Buscamos etiquetas h2 y h3 que tengan un ID (generado por conversorMd)
-    const regex = /<(h2|h3) id="([^"]+)">([^<]+)<\/\1>/g;
+    // Buscamos cabeceras ## y ### en el Markdown
+    const regex = /^(#{2,3})\s+(.+)$/gm;
     const matches = [];
     let match;
 
+    const crearId = (texto: string) => {
+      return String(texto || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, "")
+        .replace(/\s+/g, "-")
+        .slice(0, 50);
+    };
+
     while ((match = regex.exec(contenido)) !== null) {
+      const nivel = match[1].length; // 2 o 3
+      const texto = match[2].trim();
       matches.push({
-        nivel: match[1] === "h2" ? 2 : 3,
-        id: match[2],
-        texto: match[3],
+        nivel,
+        id: crearId(texto),
+        texto,
       });
     }
 
