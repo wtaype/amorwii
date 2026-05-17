@@ -24,7 +24,7 @@ function NuevoPostContent() {
     slug: "",
     descripcion: "", // Antes resumen
     keywords: "", // Solo para UI, se guardará en metaSEO
-    alt_img: "", // Solo para UI, se guardará en metaSEO
+    imgAlt: "", // Solo para UI, se guardará en metaSEO
     contenidoMD: "", // camelCase
     categoria: "",
     imagen: "",
@@ -59,7 +59,7 @@ function NuevoPostContent() {
             slug: data.slug || "",
             descripcion: data.descripcion || "",
             keywords: data.metaSEO?.keywords || "",
-            alt_img: data.metaSEO?.alt || "",
+            imgAlt: data.metaSEO?.alt || "",
             contenidoMD: data.contenidoMD || "",
             categoria: data.categoria || "",
             imagen: data.imagen || "",
@@ -156,7 +156,7 @@ function NuevoPostContent() {
 
       const metaSEO = {
         keywords: form.keywords,
-        alt: form.alt_img || form.titulo
+        alt: form.imgAlt || form.titulo
       };
 
       const datosPost = {
@@ -264,60 +264,63 @@ function NuevoPostContent() {
           <div className="nu_grid_seo">
             <div className="nu_card">
               <div className="nu_card_title"><i className="fa-solid fa-align-left"></i> Descripción (SEO)</div>
-              <textarea id="nu_descripcion" value={form.descripcion} onChange={change} rows={3} placeholder="Describe brevemente la historia..." maxLength={160} required />
+              <textarea id="nu_descripcion" value={form.descripcion} onChange={change} rows={3} placeholder="Describe la historia... (Mínimo: 50, Máximo: 160 caracteres)" maxLength={160} required />
               <div className="nu_counter">{form.descripcion.length}/160</div>
             </div>
             <div className="nu_card">
               <div className="nu_card_title"><i className="fa-solid fa-search"></i> Metadatos</div>
-              <input id="nu_keywords" type="text" value={form.keywords} onChange={change} placeholder="Keywords (ej: amor, pareja)" style={{ marginBottom: "1vh" }} />
-              <input id="nu_alt_img" type="text" value={form.alt_img} onChange={change} placeholder="Alt Imagen (ej: Pareja feliz)" />
+              <input id="nu_keywords" type="text" value={form.keywords} onChange={change} placeholder="ej: amor, pareja, consejos (Mínimo: 3, Máximo: 5 palabras)" style={{ marginBottom: "1vh" }} />
+              <input id="nu_imgAlt" type="text" value={form.imgAlt} onChange={change} placeholder="Alt Imagen (ej: Pareja feliz)" />
             </div>
           </div>
 
-          {/* Editor Markdown Split-Pane */}
+          {/* Editor Markdown Tabs */}
           <div className="nu_card nu_card_editor" style={{ gridColumn: "1 / -1" }}>
-            <div className="nu_card_title_row">
-              <span><i className="fa-solid fa-code"></i> Editor Interactivo Pro</span>
+            <div className="nu_card_title_row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span><i className="fa-solid fa-code"></i> {vista === 'edit' ? 'Contenido Markdown' : 'Contenido Preview'}</span>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button type="button" onClick={() => setVista('edit')} className="po_like_btn" style={{ padding: "6px 15px", background: vista === 'edit' ? 'var(--wa)' : 'rgba(255,255,255,0.05)' }}><i className="fa-solid fa-code"></i> Editor</button>
+                <button type="button" onClick={() => setVista('prev')} className="po_like_btn" style={{ padding: "6px 15px", background: vista === 'prev' ? 'var(--wa)' : 'rgba(255,255,255,0.05)' }}><i className="fa-solid fa-eye"></i> Preview</button>
+              </div>
             </div>
 
-            {/* Toolbar */}
-            <div style={{ display: "flex", gap: "10px", padding: "10px", background: "rgba(255,255,255,0.05)", borderRadius: "12px 12px 0 0", borderBottom: "1px solid rgba(255,255,255,0.1)", flexWrap: "wrap" }}>
-              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("**Negrita**")}><b>B</b></button>
-              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("*Cursiva*")}><i>I</i></button>
-              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("## ")}>H2</button>
-              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("![AltTexto](url_imagen)")}><i className="fa-solid fa-image"></i></button>
-              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("[Texto_Link](https://)")}><i className="fa-solid fa-link"></i></button>
-              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem", background: "rgba(59, 130, 246, 0.2)", color: "#60A5FA" }} onClick={() => insertAtCursor("\n<witip tipo=\"info\">\nEscribe tu consejo aquí...\n</witip>\n")}><i className="fa-solid fa-lightbulb"></i> WiTip</button>
-              <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem", background: "rgba(255, 92, 105, 0.2)", color: "#FF5C69" }} onClick={() => insertAtCursor("\n<modal titulo=\"Ver contenido oculto\">\nContenido secreto...\n</modal>\n")}><i className="fa-solid fa-eye"></i> Modal</button>
-            </div>
+            {/* Toolbar - Oculta en Preview */}
+            {vista === 'edit' && (
+              <div style={{ display: "flex", gap: "10px", padding: "10px", background: "rgba(255,255,255,0.05)", borderRadius: "12px 12px 0 0", borderBottom: "1px solid rgba(255,255,255,0.1)", flexWrap: "wrap" }}>
+                <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("**Negrita**")}><b>B</b></button>
+                <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("*Cursiva*")}><i>I</i></button>
+                <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("## ")}>H2</button>
+                <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("![AltTexto](url_imagen)")}><i className="fa-solid fa-image"></i></button>
+                <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem" }} onClick={() => insertAtCursor("[Texto_Link](https://)")}><i className="fa-solid fa-link"></i></button>
+                <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem", background: "rgba(59, 130, 246, 0.2)", color: "#60A5FA" }} onClick={() => insertAtCursor("\n<witip tipo=\"info\">\nEscribe tu consejo aquí...\n</witip>\n")}><i className="fa-solid fa-lightbulb"></i> WiTip</button>
+                <button type="button" className="po_like_btn" style={{ padding: "5px 12px", fontSize: "0.85rem", background: "rgba(255, 92, 105, 0.2)", color: "#FF5C69" }} onClick={() => insertAtCursor("\n<modal titulo=\"Ver contenido oculto\">\nContenido secreto...\n</modal>\n")}><i className="fa-solid fa-eye"></i> Modal</button>
+              </div>
+            )}
 
-            <div style={{ display: "flex", gap: "20px", padding: "15px", flexDirection: "row", alignItems: "stretch", flexWrap: "wrap" }}>
-              {/* Lado Izquierdo: Textarea */}
-              <div style={{ flex: "1 1 45%", minWidth: "300px", display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", gap: "20px", padding: "15px", flexDirection: "column" }}>
+              {vista === 'edit' ? (
                 <textarea
                   id="nu_contenidoMD"
                   ref={textareaRef}
                   className="nu_code"
                   value={form.contenidoMD}
                   onChange={change}
-                  style={{ flex: 1, minHeight: "500px", borderRadius: "0 0 12px 12px", borderTop: "none" }}
+                  style={{ width: "100%", minHeight: "500px", borderRadius: "0 0 12px 12px", borderTop: "none" }}
                   placeholder="Escribe tu historia aquí usando Markdown y los atajos mágicos... ✨"
                   required
                 />
-              </div>
-
-              {/* Lado Derecho: Live Preview */}
-              <div style={{ flex: "1 1 45%", minWidth: "300px", background: "rgba(0,0,0,0.15)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "20px", maxHeight: "500px", overflowY: "auto" }}>
-                <div style={{ fontSize: "0.8rem", color: "var(--tx)", opacity: 0.5, marginBottom: "10px", textTransform: "uppercase", letterSpacing: "1px" }}>Vista Previa en Vivo 🔴</div>
-                {form.contenidoMD ? (
-                  <MarkdownPro contenido={form.contenidoMD} />
-                ) : (
-                  <div style={{ textAlign: "center", opacity: 0.3, marginTop: "100px" }}>
-                    <i className="fa-solid fa-pen-nib" style={{ fontSize: "3rem", marginBottom: "10px" }}></i>
-                    <p>Empieza a escribir para ver la magia...</p>
-                  </div>
-                )}
-              </div>
+              ) : (
+                <div style={{ width: "100%", background: "rgba(0,0,0,0.15)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "30px", minHeight: "500px" }}>
+                  {form.contenidoMD ? (
+                    <MarkdownPro contenido={form.contenidoMD} />
+                  ) : (
+                    <div style={{ textAlign: "center", opacity: 0.3, marginTop: "100px" }}>
+                      <i className="fa-solid fa-pen-nib" style={{ fontSize: "3rem", marginBottom: "10px" }}></i>
+                      <p>Empieza a escribir para ver la magia...</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
