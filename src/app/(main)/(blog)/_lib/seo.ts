@@ -13,14 +13,14 @@ export function generarSchemaPost(post: Post) {
     "datePublished": post.creado,
     "dateModified": post.actualizado,
     "author": [{
-        "@type": "Person",
-        "name": post.autor,
-        "url": "https://amorwii.com"
-      }],
+      "@type": "Person",
+      "name": post.autor,
+      "url": "https://amorwii.com"
+    }],
     "description": post.resumen,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://amorwii.com/blog/${post.slug}`
+      "@id": `https://amorwii.com/${post.slug}`
     }
   };
 }
@@ -29,22 +29,39 @@ export function generarSchemaPost(post: Post) {
  * Genera los metadatos dinámicos para Next.js
  */
 export function generarMetaPost(post: Post) {
+  const url = `https://amorwii.com/${post.slug}`;
+  const image = post.imagenTop || post.imagen;
+
   return {
     title: `${post.titulo} | AmorWii`,
     description: post.resumen,
     keywords: post.keywords,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title: post.titulo,
       description: post.resumen,
-      url: `https://amorwii.com/blog/${post.slug}`,
-      images: [{ url: post.imagenTop || post.imagen }],
+      url: url,
+      siteName: "AmorWii",
+      locale: "es_ES",
+      images: [{ 
+        url: image,
+        width: 1200,
+        height: 630,
+        alt: post.titulo
+      }],
       type: 'article',
+      publishedTime: post.creado,
+      authors: [post.autor],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.titulo,
       description: post.resumen,
-      images: [post.imagenTop || post.imagen],
+      images: [image],
+      creator: "@wilder.taype",
     }
   };
 }
+

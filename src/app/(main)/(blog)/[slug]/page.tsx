@@ -1,13 +1,24 @@
 import React from "react";
 export const revalidate = 3600; // Revalidar cada hora
 import { notFound } from "next/navigation";
-import { traerPost } from "../_lib/blogData";
+import { traerPost, traerPosts } from "../_lib/blogData";
 import { generarMetaPost, generarSchemaPost } from "../_lib/seo";
 import PostViewer from "./post";
 import BlogRelacionados from "../_components/BlogRelacionados";
 
 interface PostPageProps {
   params: { slug: string };
+}
+
+/**
+ * GENERAR RUTAS ESTÁTICAS
+ * Pre-renderiza todos los posts en tiempo de compilación para SEO instantáneo.
+ */
+export async function generateStaticParams() {
+  const posts = await traerPosts();
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
 }
 
 /**

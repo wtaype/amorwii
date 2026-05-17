@@ -1,7 +1,7 @@
 import React from "react";
 import "./blog.css";
-import { traerPosts } from "./_lib/blogData";
-import BlogFeed from "./_components/BlogFeed";
+import { traerPosts } from "../_lib/blogData";
+import BlogFeed from "../_components/BlogFeed";
 
 export const metadata = {
   title: "Blog de Historias | AmorWii",

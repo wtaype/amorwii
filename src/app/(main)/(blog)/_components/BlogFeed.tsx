@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Post } from "../_lib/blogData";
-import { TarjetaBlog } from "../blog";
+import { TarjetaBlog } from "../blog/blog";
 
 interface BlogFeedProps {
   initialPosts: Post[];
@@ -26,8 +26,8 @@ export default function BlogFeed({ initialPosts }: BlogFeedProps) {
   const postsFiltrados = useMemo(() => {
     return initialPosts.filter(p => {
       const cumpleCat = catActiva === "Todas" || p.categoria === catActiva;
-      const cumpleBusq = p.titulo.toLowerCase().includes(busqueda.toLowerCase()) || 
-                         p.resumen.toLowerCase().includes(busqueda.toLowerCase());
+      const cumpleBusq = p.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
+        p.resumen.toLowerCase().includes(busqueda.toLowerCase());
       return cumpleCat && cumpleBusq;
     });
   }, [initialPosts, busqueda, catActiva]);
@@ -38,7 +38,7 @@ export default function BlogFeed({ initialPosts }: BlogFeedProps) {
       <div className="bl_bar">
         <div className="bl_cats">
           {categorias.map(cat => (
-            <button 
+            <button
               key={cat}
               className={`bl_cat_btn ${catActiva === cat ? "active" : ""}`}
               onClick={() => setCatActiva(cat)}
@@ -52,10 +52,10 @@ export default function BlogFeed({ initialPosts }: BlogFeedProps) {
         <div className="bl_bar_right">
           <div className="bl_search_inner">
             <i className="fa-solid fa-search bl_search_ico"></i>
-            <input 
-              id="bl_search_inp" 
-              type="text" 
-              placeholder="Buscar historias..." 
+            <input
+              id="bl_search_inp"
+              type="text"
+              placeholder="Buscar historias..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />

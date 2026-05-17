@@ -1,7 +1,7 @@
 import React from "react";
 import { supabase } from "@/lib/supabase";
 import { Post } from "../_lib/blogData";
-import { TarjetaBlog } from "../blog";
+import { TarjetaBlog } from "../blog/blog";
 
 interface RelacionadosProps {
   slugActual: string;
@@ -29,7 +29,7 @@ export default async function BlogRelacionados({ slugActual, categoria }: Relaci
       <h2 className="bl_hero_tit" style={{ fontSize: 'var(--fz_l1)', textAlign: 'left', marginBottom: '2vh' }}>
         Historias <span className="bl_grad">relacionadas</span>
       </h2>
-      
+
       <div className="bl_grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
         {posts.map((post: Post) => (
           <TarjetaBlog key={post.id} post={post} />

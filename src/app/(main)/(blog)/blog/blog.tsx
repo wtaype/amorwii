@@ -2,8 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { Post } from "./_lib/blogData";
-import { haceTiempo } from "./_lib/formatoFechas";
+import { Post } from "../_lib/blogData";
+import { haceTiempo } from "../_lib/formatoFechas";
 
 /**
  * TARJETA BLOG
@@ -12,12 +12,12 @@ import { haceTiempo } from "./_lib/formatoFechas";
  */
 export function TarjetaBlog({ post }: { post: Post }) {
   return (
-    <Link href={`/blog/${post.slug}`} className="bl_card po_fade po_visible">
+    <Link href={`/${post.slug}`} className="bl_card po_fade po_visible">
       <div className="bl_card_img">
-        <img 
-          src={post.imagen} 
-          alt={post.imagenAlt || post.titulo} 
-          loading="lazy" 
+        <img
+          src={post.imagen}
+          alt={post.imagenAlt || post.titulo}
+          loading="lazy"
         />
         <div className="bl_card_over">
           <span className="bl_card_cat">
@@ -30,18 +30,18 @@ export function TarjetaBlog({ post }: { post: Post }) {
           )}
         </div>
       </div>
-      
+
       <div className="bl_card_body">
         <h3 className="bl_card_tit">{post.titulo}</h3>
         <p className="bl_card_res">{post.resumen}</p>
-        
+
         <div className="bl_card_footer">
           <div className="bl_card_meta">
             <span><i className="fa-solid fa-calendar-day"></i> {haceTiempo(post.creado)}</span>
             <span><i className="fa-solid fa-eye"></i> {post.vistas || 0}</span>
           </div>
           <div className="bl_card_leer">
-             Leer más <i className="fa-solid fa-arrow-right"></i>
+            Leer más <i className="fa-solid fa-arrow-right"></i>
           </div>
         </div>
       </div>
