@@ -46,8 +46,6 @@ export const viewport: Viewport = {
   themeColor: THEMES.find(t => t.name === wii.color)?.color || "#FF5C69",
 };
 
-const themeScript = `(function(){try{var t=localStorage.getItem('wiTema');if(t){var p=t.split('|');document.documentElement.setAttribute('data-theme',p[0]);var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=p[1]}else{document.documentElement.setAttribute('data-theme','${wii.color}')}}catch(e){}})();`;
-
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   // Perfil del usuario en servidor — cero parpadeo en Header
   let perfilInicial: SmileNuevo | null = null;
@@ -62,7 +60,6 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <div className={`${poppins.variable} ${outfit.variable}`}>
-      <Script id="theme-script" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeScript }} />
       <Mensaje />
       <Notificacion />
       <Header perfilInicial={perfilInicial} />

@@ -2,13 +2,12 @@ import React from "react";
 export const revalidate = 3600; // Revalidar cada hora
 
 import { notFound } from "next/navigation";
-import { traerPost, traerPosts } from "../(main)/(blog)/_lib/blogData";
+import { traerPosts } from "../(main)/(blog)/_lib/blogData";
 import { generarMetaPost, generarSchemaPost } from "../(main)/(blog)/_lib/seo";
 import PostViewer from "../(main)/(blog)/_components/post";
 import MainLayout from "../(main)/layout";
-
-import { createSupabaseServer } from "@/lib/supabaseServer";
-import SorpresaView from "../(sorpresas)/sorpresas";
+import DetallesView from "../(sorpresas)/detalles";
+import { resolverSlug } from "./_lib/resolver";
 
 interface UniversalPageProps {
   params: Promise<{ slug: string }>;
@@ -32,45 +31,31 @@ export async function generateStaticParams() {
 
 /**
  * GENERACIÓN DE METADATOS DINÁMICOS
- * Detecta si el slug es un post o una sorpresa para entregar el SEO idóneo.
+ * Detecta si el slug es un post o un detalle premium para entregar el SEO idóneo.
  */
 export async function generateMetadata({ params }: UniversalPageProps) {
   const { slug } = await params;
+  const result = await resolverSlug(slug);
 
-  // 1. Intentar traer post del blog
-  const post = await traerPost(slug);
-  if (post) {
-    return generarMetaPost(post);
+  if (result?.tipo === "blog") {
+    return generarMetaPost(result.data);
   }
 
-  // 2. Intentar traer sorpresa de Supabase
-  try {
-    const sb = await createSupabaseServer();
-    const { data: sorpresa } = await sb
-      .from("Sorpresas")
-      .select("de, para, msg")
-      .eq("slug", slug)
-      .maybeSingle();
-
-    if (sorpresa) {
-      return {
-        title: `Regalo especial para ${sorpresa.para || "ti"} 🎁 | AmorWii`,
-        description: `Alguien especial te ha enviado un mensaje de amor personalizado. ¡Haz clic para abrirlo!`,
-        robots: { index: false, follow: false }, // Privacidad para sorpresas
-        openGraph: {
-          title: `Regalo especial para ${sorpresa.para || "ti"} 🎁`,
-          description: `Alguien especial te ha enviado un mensaje de amor personalizado. ¡Haz clic para abrirlo!`,
-          type: "website",
-        }
-      };
-    }
-  } catch (err) {
-    console.warn("Error al buscar metadatos de Sorpresa:", err);
+  if (result?.tipo === "sorpresa") {
+    const sorpresa = result.data;
+    return {
+      title: `Mensaje de amor para ${sorpresa.para || "ti"} 💖 | AmorWii`,
+      description: `¡Sorpresa! Alguien especial te ha enviado un mensaje de amor súper premium y privado. ¡Haz clic para verlo!`,
+      openGraph: {
+        title: `Mensaje especial para ${sorpresa.para || "ti"} 🎁`,
+        description: `¡Sorpresa! Alguien especial te ha enviado un mensaje de amor súper premium y privado. ¡Haz clic para verlo!`,
+        type: "website",
+      }
+    };
   }
 
   return {
-    title: "Página no encontrada | AmorWii",
-    robots: { index: false, follow: false }
+    title: "Página no encontrada | AmorWii"
   };
 }
 
@@ -80,30 +65,15 @@ export async function generateMetadata({ params }: UniversalPageProps) {
  */
 export default async function UniversalPage({ params }: UniversalPageProps) {
   const { slug } = await params;
+  const result = await resolverSlug(slug);
 
-  // Ejecutamos las búsquedas de forma paralela (máxima velocidad)
-  const busquedaBlog = traerPost(slug);
-  
-  const busquedaSorpresa = (async () => {
-    try {
-      const sb = await createSupabaseServer();
-      const { data } = await sb
-        .from("Sorpresas")
-        .select("id,slug,de,para,msg,plantilla,fondo,efectoId,musicUrl,fotos,activo")
-        .eq("slug", slug)
-        .maybeSingle();
-      return data;
-    } catch (err) {
-      console.error("Error al buscar sorpresa:", err);
-      return null;
-    }
-  })();
-
-  // Esperamos ambos resultados
-  const [post, sorpresa] = await Promise.all([busquedaBlog, busquedaSorpresa]);
+  if (!result) {
+    notFound();
+  }
 
   // CASO A: ES UN POST DE BLOG
-  if (post) {
+  if (result.tipo === "blog") {
+    const post = result.data;
     const schema = generarSchemaPost(post);
     return (
       <MainLayout>
@@ -116,12 +86,12 @@ export default async function UniversalPage({ params }: UniversalPageProps) {
     );
   }
 
-  // CASO B: ES UNA SORPRESA PERSONALIZADA
-  if (sorpresa) {
-    const FALLBACK = { de: "", para: "", msg: "", plantilla: "Amor1", fondo: "1", efectoId: "corazones", musicUrl: "", fotos: [] as string[], activo: false };
-    return <SorpresaView data={sorpresa ?? FALLBACK} />;
+  // CASO B: ES UNA SORPRESA PREMIUM (TABLA DETALLES)
+  if (result.tipo === "sorpresa") {
+    const sorpresa = result.data;
+    const FALLBACK = { id: "", slug: "", de: "", para: "", msg: "", plantilla: "Amor1", fondo: "1", efectoId: "corazones", musicUrl: "", fotos: [] as string[], activo: false, vistas: 0 };
+    return <DetallesView data={sorpresa ?? FALLBACK} />;
   }
 
-  // CASO C: NO EXISTE EN NINGÚN MUNDO
   notFound();
 }

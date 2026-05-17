@@ -1,17 +1,44 @@
-import { createSupabaseServer } from "@/lib/supabaseServer";
+import { notFound } from "next/navigation";
 import SorpresaView from "../../sorpresas";
+import { resolverSorpresaSinAuth } from "./_lib/resolver";
+
+interface VerPageProps {
+  params: Promise<{ slug: string }>;
+}
 
 const FALLBACK = { de: "", para: "", msg: "", plantilla: "Amor1", fondo: "1", efectoId: "corazones", musicUrl: "", fotos: [] as string[], activo: false };
 
-export default async function VerPage({ params }: { params: Promise<{ slug: string }> }) {
-    const { slug } = await params;
-    const sb = await createSupabaseServer();
+/**
+ * METADATOS LIMPIOS Y SENCILLOS PARA SORPRESAS PÚBLICAS
+ */
+export async function generateMetadata({ params }: VerPageProps) {
+  const { slug } = await params;
+  const sorpresa = await resolverSorpresaSinAuth(slug);
 
-    const { data } = await sb
-        .from("Sorpresas")
-        .select("id,slug,de,para,msg,plantilla,fondo,efectoId,musicUrl,fotos,activo")
-        .eq("slug", slug)
-        .single();
+  if (sorpresa) {
+    return {
+      title: `Regalo especial para ${sorpresa.para || "ti"} 🎁 | AmorWii`,
+      description: `Alguien especial te ha enviado un mensaje de amor personalizado. ¡Haz clic para abrirlo!`,
+      openGraph: {
+        title: `Regalo especial para ${sorpresa.para || "ti"} 🎁`,
+        description: `Alguien especial te ha enviado un mensaje de amor personalizado. ¡Haz clic para abrirlo!`,
+        type: "website",
+      }
+    };
+  }
 
-    return <SorpresaView data={data ?? FALLBACK} />;
+  return {
+    title: "Regalo especial | AmorWii"
+  };
+}
+
+export default async function VerPage({ params }: VerPageProps) {
+  const { slug } = await params;
+  const sorpresa = await resolverSorpresaSinAuth(slug);
+
+  if (!sorpresa) {
+    notFound();
+  }
+
+  return <SorpresaView data={sorpresa ?? FALLBACK} />;
 }

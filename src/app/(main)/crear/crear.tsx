@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { linkweb } from "@/app/wii";
 import { PhonePreview } from "./_components/preview";
 import { optimizarImagen } from "./_lib/imgOptimizador";
+import { Mensaje } from "@/components/Mensaje";
 import "./crear.css";
 
 // Slugs reservados — rutas del sistema que no pueden usarse como link personalizado
@@ -26,6 +27,7 @@ export type FormState = {
     plantilla: string;
     fotos: string[]; // Fotos subidas localmente (blob urls en UI)
     urlsExternas: string[]; // Links de imágenes externas (ej: imgur)
+    pin: string; // PIN de 4 dígitos para proteger
 };
 
 // ─── Hook de lógica de creación ───────────────────
@@ -35,6 +37,7 @@ function useCreator() {
     const [archivosFotos, setArchivosFotos] = useState<File[]>([]);
     const [isAuth, setIsAuth] = useState(false);
     const [authUser, setAuthUser] = useState<any>(null);
+    const [userPlan, setUserPlan] = useState<string>("free");
     const [form, setFormState] = useState<FormState>({
         de: "", para: "", msg: "",
         efectoId: "corazones", fondo: "1",
@@ -42,14 +45,49 @@ function useCreator() {
         plantilla: "Amor1",
         fotos: [],
         urlsExternas: [""], // Start with only 1 external link input
+        pin: "",
     });
 
-    // Detectar sesión activa
+    // Detectar sesión activa y su plan correspondiente en smiles en tiempo real
     useEffect(() => {
-        supabase.auth.getUser().then(({ data }) => {
-            setIsAuth(!!data.user);
-            setAuthUser(data.user);
+        // Función auxiliar para traer y establecer el plan del usuario
+        const actualizarPlanUsuario = async (email: string) => {
+            try {
+                const { data: smile } = await supabase
+                    .from("smiles")
+                    .select("plan")
+                    .eq("email", email)
+                    .maybeSingle();
+                if (smile?.plan) {
+                    setUserPlan(smile.plan.toLowerCase()); // 'free', 'pro', 'vip'
+                } else {
+                    setUserPlan("free");
+                }
+            } catch (e) {
+                console.warn("No se pudo obtener el plan del usuario:", e);
+                setUserPlan("free");
+            }
+        };
+
+        // Escuchar el estado de autenticación en tiempo real
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            const user = session?.user || null;
+            const hasUser = !!user;
+
+            setIsAuth(hasUser);
+            setAuthUser(user);
+
+            if (hasUser && user?.email) {
+                await actualizarPlanUsuario(user.email);
+            } else {
+                setUserPlan("free");
+            }
         });
+
+        // Limpieza: desuscribirse cuando el componente se desmonte
+        return () => {
+            subscription.unsubscribe();
+        };
     }, []);
 
     const handleUploadFoto = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,7 +118,7 @@ function useCreator() {
         });
     };
 
-    const setField = (field: keyof FormState, value: string) => {
+    const setField = (field: keyof FormState, value: any) => {
         setFormState((prev) => {
             const next = { ...prev, [field]: value };
             if (field === "para") {
@@ -117,6 +155,12 @@ function useCreator() {
         try {
             const slug = form.slug.trim();
 
+            // Validar PIN si se especificó
+            const pinFinal = form.pin.trim();
+            if (pinFinal && (pinFinal.length !== 4 || isNaN(Number(pinFinal)))) {
+                throw new Error("El PIN de seguridad debe contener exactamente 4 números.");
+            }
+
             // SEGURIDAD: Validar límites antes de subir nada
             if (!isAuth) {
                 // Solo permitimos máximo 2 archivos en el plan gratis
@@ -126,7 +170,7 @@ function useCreator() {
                 }
             }
 
-            // Subir fotos a Storage en paralelo (Solo ocurre aquí, al presionar GUARDAR)
+            // Subir fotos a Storage en paralelo
             const urlsFotos: string[] = await Promise.all(
                 archivosFotos.map(async (file, i) => {
                     if (!file) return null;
@@ -138,53 +182,104 @@ function useCreator() {
                 })
             ).then(results => results.filter((url): url is string => url !== null));
 
-            // Validar slug único
+            // 1. Validar slug único en la tabla correspondiente
             let slugFinal = slug || form.para.toLowerCase().replace(/[^a-z0-9]+/g, "");
-            const { data: existing } = await supabase
-                .from("Sorpresas").select("slug").like("slug", `${slugFinal}%`);
-            if (existing && existing.length > 0) {
-                const nums = existing.map((r: { slug: string }) => {
-                    const n = parseInt(r.slug.replace(slugFinal, ""), 10);
-                    return isNaN(n) ? 0 : n;
-                });
-                slugFinal = `${slugFinal}${Math.max(...nums) + 1}`;
+            const targetTable = isAuth ? "detalles" : "sorpresas";
+
+            const { data: existing, error: checkError } = await supabase
+                .from(targetTable)
+                .select("slug")
+                .eq("slug", slugFinal);
+
+            if (checkError) {
+                throw new Error("Error de validación al verificar el enlace: " + checkError.message);
             }
 
-            // 3. Insertar en tabla Sorpresas (Juntamos fotos subidas + links externos llenos)
+            if (existing && existing.length > 0) {
+                if (isAuth) {
+                    // Premium/Auth: Le alertamos de forma elegante para que elija otro
+                    throw new Error(`El enlace personalizado "${slugFinal}" ya está en uso. Por favor, elige otro nombre.`);
+                } else {
+                    // Gratis/Anon: Auto-incrementamos en silencio
+                    const { data: similar } = await supabase
+                        .from("sorpresas")
+                        .select("slug")
+                        .like("slug", `${slugFinal}%`);
+                    if (similar && similar.length > 0) {
+                        const nums = similar.map((r: { slug: string }) => {
+                            const n = parseInt(r.slug.replace(slugFinal, ""), 10);
+                            return isNaN(n) ? 0 : n;
+                        });
+                        slugFinal = `${slugFinal}${Math.max(...nums) + 1}`;
+                    }
+                }
+            }
+
             const fotosFinales = [...urlsFotos, ...form.urlsExternas.filter(u => u.trim() !== "")];
 
-            const { error: insertError } = await supabase.from("Sorpresas").insert({
-                slug: slugFinal,
-                de: form.de, para: form.para, msg: form.msg,
-                plantilla: form.plantilla, fondo: form.fondo,
-                efectoId: form.efectoId, musicUrl: form.musicaUrl,
-                fotos: fotosFinales,
-                userId: authUser ? authUser.id : null,
-                email: authUser ? authUser.email : null,
-                usuario: authUser ? (authUser.user_metadata?.nombre || authUser.user_metadata?.usuario || null) : null,
-                activo: true,
-                creado: new Date().toISOString(),
-                actualizado: new Date().toISOString(),
-                expira: isAuth ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            });
+            // 2. Inserción dividida según tipo de sorpresa (Opción B)
+            let insertError;
+
+            if (isAuth) {
+                // PREMIUM: Insertar en la tabla 'detalles'
+                const { error } = await supabase.from("detalles").insert({
+                    slug: slugFinal,
+                    de: form.de,
+                    para: form.para,
+                    msg: form.msg,
+                    plantilla: form.plantilla,
+                    fondo: form.fondo,
+                    efectoId: form.efectoId,
+                    musicUrl: form.musicaUrl,
+                    fotos: fotosFinales,
+                    userId: authUser ? authUser.id : null,
+                    email: authUser ? authUser.email : null,
+                    usuario: authUser ? (authUser.user_metadata?.nombre || authUser.user_metadata?.usuario || null) : null,
+                    activo: true,
+                    plan: userPlan || "free",
+                    pin: pinFinal || null,
+                    creado: new Date().toISOString(),
+                    actualizado: new Date().toISOString()
+                });
+                insertError = error;
+            } else {
+                // ANÓNIMO/GRATIS: Insertar en la tabla 'sorpresas'
+                const { error } = await supabase.from("sorpresas").insert({
+                    slug: slugFinal,
+                    de: form.de,
+                    para: form.para,
+                    msg: form.msg,
+                    plantilla: form.plantilla,
+                    fondo: form.fondo,
+                    efectoId: form.efectoId,
+                    musicUrl: form.musicaUrl,
+                    fotos: fotosFinales,
+                    activo: true,
+                    expira: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    creado: new Date().toISOString(),
+                    actualizado: new Date().toISOString()
+                });
+                insertError = error;
+            }
 
             if (insertError) {
                 console.log("================= ERROR SUPABASE =================");
                 console.log(JSON.stringify(insertError, null, 2));
                 console.log("==================================================");
-                throw new Error("Supabase rechazó el guardado: " + insertError.message + " | Código: " + insertError.code);
+                throw new Error("Supabase rechazó el guardado: " + insertError.message);
             }
 
-            // URL corta según auth: con auth → /deysi, sin auth → /?ver=deysi
+            // Generación de URL Corta según UX Limpio
             const url = isAuth
-                ? `${window.location.origin}/${slugFinal}`
-                : `${window.location.origin}/?ver=${slugFinal}`;
+                ? `${window.location.origin}/${slugFinal}` // Con Auth -> amorwii.com/deysi
+                : `${window.location.origin}/ver/${slugFinal}`; // Sin Auth -> amorwii.com/ver/deysi
+
             setUrlCorta(url);
             copiar(url);
-            alert("¡Sorpresa guardada y link copiado! ✨");
+            Mensaje("¡Dedicatoria guardada y link copiado! ✨", "success");
         } catch (e: any) {
             console.error("Error guardando:", e);
-            alert(e.message || "Error al guardar. Revisa la consola.");
+            Mensaje(e.message || "Error al guardar. Revisa la consola.", "error");
         } finally {
             setLoading(false);
         }
@@ -195,7 +290,7 @@ function useCreator() {
         navigator.clipboard.writeText(texto);
     };
 
-    return { form, setField, loading, urlLarga: urlLargaRealtime, urlCorta, guardar, copiar, handleUploadFoto, archivosFotos, isAuth };
+    return { form, setField, loading, urlLarga: urlLargaRealtime, urlCorta, guardar, copiar, handleUploadFoto, archivosFotos, isAuth, userPlan };
 }
 
 // ─── Constantes ──────────────────────────────────
@@ -485,23 +580,25 @@ function CardMusica({ form, setField }: { form: FormState; setField: (f: keyof F
 }
 
 function CardLinks({ form, setField, guardar, loading, urlLarga, urlCorta, copiar, isAuth }: {
-    form: FormState; setField: (f: keyof FormState, v: string) => void;
+    form: FormState; setField: (f: keyof FormState, v: any) => void;
     guardar: () => void; loading: boolean; urlLarga: string; urlCorta: string;
     copiar: (t: string) => void; isAuth: boolean;
 }) {
     const slug = form.slug.trim();
     const reservada = RESERVADAS.has(slug);
-    const prefijo = isAuth ? "" : "?ver=";
+
+    // Nueva estructura de URL limpia según UX especificado
+    const prefijo = isAuth ? "" : "ver/";
     const urlCortaPreview = slug ? `amorwii.com/${prefijo}${slug}` : `amorwii.com/${prefijo}...`;
 
     return (
         <div className="cr_sec">
             <h3 className="cr_stit">
-                <i className="fas fa-link" aria-hidden="true" /> Enlaces
+                <i className="fas fa-link" aria-hidden="true" /> Enlaces y Seguridad
             </h3>
 
             <div className="cr_url_row">
-                <label><i className="fas fa-link" /> Largo (sin BD):</label>
+                <label><i className="fas fa-link" /> Enlace Largo (Local - sin BD):</label>
                 <div className="cr_url_box">
                     <span className="cr_pre">amorwii.com/</span>
                     <input readOnly value={urlLarga.replace(/https?:\/\/[^/]+\//, "")} placeholder="..." />
@@ -512,15 +609,14 @@ function CardLinks({ form, setField, guardar, loading, urlLarga, urlCorta, copia
 
             <div className="cr_url_row">
                 <label>
-                    <i className="fas fa-bolt" /> Personalizado
+                    <i className="fas fa-bolt" /> Enlace Personalizado:
                     {isAuth
-                        ? <span className="cr_badge_auth"> ✨ Con tu cuenta</span>
-                        : <span className="cr_badge_anon"> · 30 días</span>}
-                    :
+                        ? <span className="cr_badge_auth"> ✨ smile</span>
+                        : <span className="cr_badge_anon"> · Expira en 30 días</span>}
                 </label>
                 <div className="cr_url_box cr_url_corta">
                     <span className="cr_pre" style={{ background: "transparent" }}>
-                        amorwii.com/{!isAuth && <span style={{ opacity: 0.6, fontSize: "0.85em" }}>?ver=</span>}
+                        amorwii.com/{prefijo}
                     </span>
                     <Witip show={reservada} msg="¡Nombre reservado!" tipo="mco">
                         <input
@@ -536,7 +632,31 @@ function CardLinks({ form, setField, guardar, loading, urlLarga, urlCorta, copia
                 {reservada && <p className="cr_slug_error">⚠️ "{slug}" está reservado. Prueba con otro nombre.</p>}
             </div>
 
-            <div className="cr_save">
+            {/* 🆕 SECCIÓN DE PIN DE SEGURIDAD PREMIUM */}
+            <div className="cr_url_row" style={{ marginTop: "2vh" }}>
+                <label>
+                    <i className="fas fa-lock" /> PIN de Seguridad <small>(Opcional - 4 números)</small>:
+                </label>
+                <div className="cr_inp" style={{ maxWidth: "200px", marginTop: "0.5vh" }}>
+                    <i className="fas fa-key" style={{ color: "var(--tx3)" }} />
+                    <input
+                        type="text"
+                        maxLength={4}
+                        placeholder="Ej: 0712"
+                        value={form.pin}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, ""); // Solo permitir números
+                            setField("pin", val);
+                        }}
+                        style={{ letterSpacing: form.pin ? "0.3em" : "normal", fontWeight: form.pin ? "bold" : "normal" }}
+                    />
+                </div>
+                <p className="cr_info_txt" style={{ fontSize: "0.8em", marginTop: "0.5vh", opacity: 0.8 }}>
+                    Si configuras un PIN, tu pareja deberá escribirlo para abrir la dedicatoria. ¡Perfecto para fechas especiales!
+                </p>
+            </div>
+
+            <div className="cr_save" style={{ marginTop: "3vh" }}>
                 <Witip show={!form.para.trim()} msg="¡Falta su nombre!" tipo="mco">
                     <button
                         type="button"

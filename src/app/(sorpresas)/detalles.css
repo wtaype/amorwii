@@ -1,0 +1,412 @@
+/* ── ESTILOS PREMIUM PARA DETALLES (AMORWII) ── */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap');
+
+:root {
+  --primary-gold: #d4af37;
+  --gold-glow: rgba(212, 175, 55, 0.4);
+  --love-pink: #ff758c;
+  --glass-bg: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.22);
+}
+
+.de_premium_wrap {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Outfit', sans-serif;
+  color: #fff;
+  padding: 4vh 4vw;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Glassmorphism Card Container */
+.de_premium_card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 32px;
+  width: 100%;
+  max-width: 580px;
+  padding: 5vh 4vw;
+  box-sizing: border-box;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  animation: cardFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* PIN Lock Screen and Start Screen */
+.de_start_container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.de_lock_icon {
+  font-size: 3.5rem;
+  margin-bottom: 2.5vh;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+  animation: float 3s ease-in-out infinite;
+}
+
+.de_premium_card h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  font-size: 2rem;
+  margin-bottom: 1.5vh;
+  background: linear-gradient(to right, #ffffff, #ffe3e3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.de_lock_info {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  line-height: 1.6;
+  margin-bottom: 4vh;
+}
+
+.de_pin_input_row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 3.5vh;
+}
+
+.de_pin_input_row input {
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 16px;
+  padding: 1.5vh 0;
+  font-size: 2.2rem;
+  text-align: center;
+  letter-spacing: 0.4em;
+  width: 190px;
+  color: #fff;
+  font-weight: 800;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.de_pin_input_row input:focus {
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 15px var(--gold-glow);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Premium Opening CTA Button */
+.de_btn_premium {
+  background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+  border: none;
+  border-radius: 20px;
+  padding: 2.2vh 5vw;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(255, 117, 140, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.de_btn_premium:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(255, 117, 140, 0.6);
+  filter: brightness(1.08);
+}
+
+.de_btn_premium:active {
+  transform: translateY(-1px);
+}
+
+/* Content Presenter */
+.de_content_wrapper {
+  animation: scaleUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.de_icon_flair {
+  font-size: 2.8rem;
+  margin-bottom: 2vh;
+}
+
+.de_premium_para {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin-bottom: 3.5vh;
+  letter-spacing: -0.5px;
+}
+
+.de_message_box {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  padding: 4vh 4vw;
+  line-height: 1.8;
+  font-size: 1.08rem;
+  font-weight: 300;
+  margin-bottom: 4vh;
+  text-align: justify;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.de_message_box p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Image Showcase Grid */
+.de_fotos_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 15px;
+  margin-bottom: 4.5vh;
+}
+
+.de_foto_item {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  aspect-ratio: 1;
+}
+
+.de_foto_item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.de_foto_item:hover {
+  transform: scale(1.05) rotate(1deg);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.de_foto_item:hover img {
+  transform: scale(1.08);
+}
+
+.de_signature {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 1.25rem;
+  opacity: 0.95;
+  margin-bottom: 5vh;
+}
+
+.de_signature span {
+  font-weight: 800;
+  font-style: normal;
+  display: block;
+  font-size: 1.6rem;
+  margin-top: 0.5vh;
+}
+
+/* 🆕 INTERACTIVE FEEDBACK AND NPS STYLING */
+.de_feedback_section {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 4vh;
+  margin-top: 4vh;
+  text-align: left;
+}
+
+.de_feedback_section h3 {
+  font-weight: 600;
+  font-size: 1.15rem;
+  margin-bottom: 2vh;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+/* NPS Scale 1-10 Slider / Buttons */
+.de_nps_scale {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  margin-bottom: 3vh;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.de_nps_btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.de_nps_btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.de_nps_btn.selected {
+  background: linear-gradient(135deg, #d4af37 0%, #f9d976 100%);
+  border-color: #f9d976;
+  color: #1a1a2e;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.de_nps_labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  margin-top: -2.5vh;
+  margin-bottom: 3.5vh;
+  padding: 0 2px;
+}
+
+/* Comment Box */
+.de_comment_box {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vh;
+}
+
+.de_comment_box textarea {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 1.8vh;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.de_comment_box textarea:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--love-pink);
+  box-shadow: 0 0 10px rgba(255, 117, 140, 0.25);
+}
+
+.de_submit_feedback_btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  border-radius: 12px;
+  padding: 1.5vh;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.de_submit_feedback_btn:hover {
+  background: var(--love-pink);
+  border-color: var(--love-pink);
+  box-shadow: 0 4px 15px rgba(255, 117, 140, 0.3);
+}
+
+/* Success state indicator */
+.de_feedback_success {
+  text-align: center;
+  padding: 2vh 0;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.de_feedback_success i {
+  color: #52c41a;
+  font-size: 2.2rem;
+  margin-bottom: 1vh;
+  display: block;
+}
+
+.de_feedback_success p {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Floating Particle Animations */
+.de_particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.de_particle {
+  position: absolute;
+  bottom: -20px;
+  opacity: 0.6;
+  animation: rise 6s linear infinite;
+}
+
+/* Keyframes */
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes rise {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-110vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.de_shake {
+  animation: shake 0.3s ease-in-out 2;
+}

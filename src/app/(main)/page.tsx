@@ -1,12 +1,13 @@
-"use client";
-
-import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { app } from "@/app/wii";
 import Showi from "@/components/Showi";
+import AnimarRoles from "@/components/AnimarRoles";
+import Contadores from "@/components/Contadores";
+import "./inicio.css";
 
 const ROLES = ['Mensajes de Amor 💕', 'San Valentín 💌', 'Aniversarios 🥂', 'Declaraciones ❤️', 'Cartas de Amor ✉️'];
-const STATS = [[1200, 'Mensajes creados'], [8, 'Plantillas únicas'], [100, '% Gratis']];
+const STATS: [number, string][] = [[1200, 'Mensajes creados'], [8, 'Plantillas únicas'], [100, '% Gratis']];
 
 const EJ = [
   { tipo: 'Amor', e: '💕', x: 'var(--Dulce, #FF5C69)', de: 'Lovewi', para: 'Alguien especial', msg: 'Eres mi todo, mi razón de sonreír cada día 💕' },
@@ -52,15 +53,6 @@ const BENEFICIOS = [
 ];
 
 export default function Home() {
-  const [roleIndex, setRoleIndex] = useState(0);
-
-  useEffect(() => {
-    // Animación de cambio de roles
-    const interval = setInterval(() => setRoleIndex((i) => (i + 1) % ROLES.length), 2500);
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="inicio">
 
@@ -69,29 +61,30 @@ export default function Home() {
         <div className="hero_txt">
           <div className="hero_badge"><i className="fas fa-heart"></i> {app} 2026</div>
           <h1>Expresa tus <span className="gradiente">Sentimientos</span><br />con Mensajes <span className="gradiente">Únicos</span></h1>
-          <div className="hero_roles">
-            {ROLES.map((r, i) => <span key={i} className={"role " + (i === roleIndex ? "active" : "")}>{r}</span>)}
-          </div>
+          
+          {/* Componente Cliente aislado para la animación rotatoria */}
+          <AnimarRoles roles={ROLES} />
+          
           <p className="hero_sub">Crea dedicatorias personalizadas con música, diseño y tu enlace secreto. Comparte en segundos 💌</p>
           <div className="hero_btns">
             <Link href="/crear" className="btn_pri"><i className="fas fa-wand-magic-sparkles"></i><span>Crear Mensaje Gratis</span></Link>
             <Link href="#como" className="btn_sec"><i className="fas fa-play"></i><span>¿Cómo funciona?</span></Link>
           </div>
-          <Showi isStats={true}>
-            <div className="hero_stats">
-              {STATS.map(([n, l], i) => (
-                <div key={i} className="hstat">
-                  <div className="hstat_n" data-target={n.toString()}>0</div>
-                  <div className="hstat_l">{l.toString()}</div>
-                </div>
-              ))}
-            </div>
-          </Showi>
+          
+          {/* Componente Cliente aislado para los contadores */}
+          <Contadores stats={STATS} />
         </div>
 
         <div className="hero_visual">
           <div className="hero_img_wrap">
-            <img src="/amor.webp" alt="AmorWii Home" width={520} height={520} className="hero_img" />
+            <Image 
+              src="/amor.webp" 
+              alt="AmorWii Home" 
+              width={520} 
+              height={520} 
+              className="hero_img" 
+              priority 
+            />
             <div className="hf_btn hf_top_l"><i className="fas fa-music"></i> Música de fondo</div>
             <div className="hf_btn hf_top_r"><i className="fas fa-link"></i> Enlace secreto</div>
             <div className="hf_btn hf_bot_l"><i className="fas fa-palette"></i> 8 Plantillas</div>

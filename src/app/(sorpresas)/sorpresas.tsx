@@ -13,10 +13,14 @@ export type SorpresaData = {
     musicUrl: string;
     fotos: string[];
     activo: boolean;
+    pin?: string | null; // Nuevo campo PIN de 4 números
 };
 
 export default function SorpresaView({ data }: { data: SorpresaData }) {
     const [started, setStarted] = useState(false);
+    const [inputPin, setInputPin] = useState("");
+    const [pinValidado, setPinValidado] = useState(false);
+    const [errorPin, setErrorPin] = useState(false);
     
     // Si la sorpresa no está activa
     if (!data.activo && data.para !== "") {
@@ -34,6 +38,86 @@ export default function SorpresaView({ data }: { data: SorpresaData }) {
             default: return "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)";
         }
     };
+
+    const handleValidarPin = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (inputPin === data.pin) {
+            setPinValidado(true);
+            setErrorPin(false);
+        } else {
+            setErrorPin(true);
+            setInputPin("");
+            // Pequeña vibración visual de error
+            setTimeout(() => setErrorPin(false), 800);
+        }
+    };
+
+    // 🔒 CASO: Requiere PIN de seguridad y aún no se ha validado
+    if (data.pin && !pinValidado) {
+        return (
+            <div className="so_start_wrap" style={{ background: getBg() }}>
+                <form className={`so_pin_card ${errorPin ? "so_shake" : ""}`} onSubmit={handleValidarPin} style={{
+                    background: "rgba(255, 255, 255, 0.15)",
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
+                    borderRadius: "24px",
+                    padding: "4vh 3vw",
+                    maxWidth: "380px",
+                    width: "90%",
+                    textAlign: "center",
+                    border: "1px solid rgba(255, 255, 255, 0.25)",
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+                    color: "#fff",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center"
+                }}>
+                    <div style={{ fontSize: "3rem", marginBottom: "2vh" }}>🔒</div>
+                    <h2 style={{ fontSize: "1.6rem", fontWeight: 800, marginBottom: "1vh" }}>Dedicatoria Protegida</h2>
+                    <p style={{ fontSize: "0.9rem", opacity: 0.9, marginBottom: "3vh" }}>
+                        Esta sorpresa es súper especial y privada. Escribe el PIN de 4 dígitos para abrirla:
+                    </p>
+                    
+                    <input
+                        type="password"
+                        maxLength={4}
+                        placeholder="••••"
+                        value={inputPin}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, ""); // Solo números
+                            setInputPin(val);
+                        }}
+                        style={{
+                            background: "rgba(255, 255, 255, 0.2)",
+                            border: "2px solid rgba(255, 255, 255, 0.4)",
+                            borderRadius: "16px",
+                            padding: "1.5vh 0",
+                            fontSize: "2.2rem",
+                            textAlign: "center",
+                            letterSpacing: "0.5em",
+                            width: "180px",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            outline: "none",
+                            marginBottom: "3vh",
+                            transition: "all 0.3s ease"
+                        }}
+                        autoFocus
+                    />
+
+                    {errorPin && (
+                        <p style={{ color: "#FF5C69", fontSize: "0.85rem", fontWeight: "bold", marginBottom: "2vh" }}>
+                            ❌ PIN incorrecto. Intenta de nuevo.
+                        </p>
+                    )}
+
+                    <button type="submit" className="so_btn_start" style={{ width: "100%", padding: "1.8vh" }}>
+                        Validar y Abrir 🎁
+                    </button>
+                </form>
+            </div>
+        );
+    }
 
     if (!started) {
         return (
