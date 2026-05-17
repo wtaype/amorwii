@@ -652,7 +652,20 @@ function CardLinks({ form, setField, guardar, loading, urlLarga, urlCorta, copia
                             className={reservada ? "cr_inp_error" : ""}
                         />
                     </Witip>
-                    <button type="button" className="cr_ubtn" onClick={() => copiar(urlCorta || urlCortaPreview)} title="Copiar"><i className="fas fa-copy" /></button>
+                    <button
+                        type="button"
+                        className="cr_ubtn"
+                        onClick={() => {
+                            if (!urlCorta) {
+                                Mensaje("Primero debes hacer clic en 'Generar y Guardar' para guardar tu dedicatoria en la base de datos antes de copiar el enlace. ⚠️", "warning");
+                                return;
+                            }
+                            copiar(urlCorta);
+                        }}
+                        title="Copiar"
+                    >
+                        <i className="fas fa-copy" />
+                    </button>
                     {urlCorta && <Link href={urlCorta} target="_blank" className="cr_ubtn" title="Abrir"><i className="fas fa-external-link-alt" /></Link>}
                 </div>
                 {reservada && <p className="cr_slug_error">⚠️ "{slug}" está reservado. Prueba con otro nombre.</p>}

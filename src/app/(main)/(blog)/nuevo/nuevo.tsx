@@ -5,7 +5,57 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Mensaje } from "@/components/Mensaje";
 import MarkdownPro from "../_components/MarkdownPro";
+import Witip from "@/components/Witip";
 import "./nuevo.css";
+
+// Hook de persistencia "PRO" compatible con Next.js (Hydration-Safe)
+function useBorrador<T>(key: string, valorInicial: T, enabled = true) {
+    const [estado, setEstado] = useState<T>(valorInicial);
+    const [hidratado, setHidratado] = useState(false);
+
+    useEffect(() => {
+        if (!enabled) {
+            setHidratado(true);
+            return;
+        }
+        try {
+            const guardado = localStorage.getItem(key);
+            if (guardado) {
+                setEstado(JSON.parse(guardado));
+            }
+        } catch (e) {
+            console.error("Error al cargar borrador:", e);
+        }
+        setHidratado(true);
+    }, [key, enabled]);
+
+    useEffect(() => {
+        if (enabled && hidratado) {
+            try {
+                localStorage.setItem(key, JSON.stringify(estado));
+            } catch (e) {
+                console.error("Error al guardar borrador:", e);
+            }
+        }
+    }, [key, estado, hidratado, enabled]);
+
+    return [estado, setEstado, hidratado] as const;
+}
+
+// Calcular estadísticas del contenido (palabras y tiempo de lectura a 200 ppm)
+function getContenidoStats(mdText: string) {
+    const text = mdText.trim();
+    if (!text) return { words: 0, min: 0 };
+    const cleanText = text
+        .replace(/!\[.*?\]\(.*?\)/g, "") // Remover imágenes md
+        .replace(/\[(.*?)\]\(.*?\)/g, "$1") // Conservar texto del link
+        .replace(/[*#_`>~-]/g, "") // Quitar caracteres de estilo md
+        .trim();
+    
+    const words = cleanText ? cleanText.split(/\s+/).length : 0;
+    const min = Math.max(1, Math.ceil(words / 200));
+    return { words, min };
+}
 
 export default function NuevoBlog() {
     const router = useRouter();
@@ -17,9 +67,11 @@ export default function NuevoBlog() {
     const [cargando, setCargando] = useState(false);
     const [cargandoDatos, setCargandoDatos] = useState(false);
     const [vista, setVista] = useState<"edit" | "prev">("edit");
+    const [hoveredTool, setHoveredTool] = useState<string | null>(null);
+    const [slugStatus, setSlugStatus] = useState<"libre" | "ocupado" | "corto" | "buscando" | null>(null);
 
-    // Estado del Formulario
-    const [form, setForm] = useState({
+    // Estado del Formulario (con persistencia inteligente useBorrador)
+    const [form, setForm] = useBorrador("amorwii_blog_form", {
         titulo: "",
         slug: "",
         descripcion: "", // Antes resumen
@@ -30,10 +82,13 @@ export default function NuevoBlog() {
         imagenTop: "",
         activo: true,
         pin: false
-    });
+    }, !editSlug);
 
-    const [tags, setTags] = useState<string[]>([]);
+    const [tags, setTags] = useBorrador<string[]>("amorwii_blog_tags", [], !editSlug);
     const [tagInp, setTagInp] = useState("");
+
+    // Calcular estadísticas en tiempo real
+    const stats = getContenidoStats(form.contenidoMD);
 
     // Ref para el textarea (para insertar texto en el cursor)
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -79,19 +134,59 @@ export default function NuevoBlog() {
         cargarPost();
     }, [editSlug]);
 
-    // Generar Slug automáticamente desde el título (Solo cuando estamos CREANDO un post nuevo)
+    // Validar disponibilidad del slug en tiempo real con debounce y auto-limpieza
     useEffect(() => {
-        if (!editSlug && form.titulo) {
-            const slug = form.titulo
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .replace(/[^a-z0-9\s]/g, "")
-                .replace(/\s+/g, "_")
-                .slice(0, 50);
-            setForm(p => ({ ...p, slug }));
+        if (!form.slug) {
+            setSlugStatus(null);
+            return;
         }
-    }, [form.titulo, editSlug]);
+
+        const limpio = form.slug
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9_-]/g, "")
+            .replace(/\s+/g, "_");
+
+        if (limpio !== form.slug) {
+            setForm(p => ({ ...p, slug: limpio }));
+        }
+
+        if (limpio.length < 11) {
+            setSlugStatus("corto");
+            return;
+        }
+
+        if (editSlug && limpio === editSlug) {
+            setSlugStatus("libre");
+            return;
+        }
+
+        setSlugStatus("buscando");
+
+        const timer = setTimeout(async () => {
+            try {
+                const { data, error } = await supabase
+                    .from("blog")
+                    .select("slug")
+                    .eq("slug", limpio)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (data) {
+                    setSlugStatus("ocupado");
+                } else {
+                    setSlugStatus("libre");
+                }
+            } catch (err) {
+                console.error("Error al validar slug:", err);
+                setSlugStatus(null);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [form.slug, editSlug, setForm]);
 
     // Manejar cambios en inputs
     const change = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -119,15 +214,116 @@ export default function NuevoBlog() {
         }, 0);
     };
 
-    // Manejar Tags
+    // Configuración de herramientas de la barra Markdown
+    const tools = [
+        {
+            id: "bold",
+            tip: "Negrita",
+            icon: <span style={{ fontWeight: 800 }}>B</span>,
+            action: () => insertAtCursor("**Negrita**")
+        },
+        {
+            id: "italic",
+            tip: "Cursiva",
+            icon: <span style={{ fontStyle: "italic" }}>I</span>,
+            action: () => insertAtCursor("*Cursiva*")
+        },
+        {
+            id: "h2",
+            tip: "Título H2",
+            icon: "H2",
+            action: () => insertAtCursor("## ")
+        },
+        {
+            id: "ul",
+            tip: "Lista con viñetas",
+            icon: <i className="fa-solid fa-list-ul"></i>,
+            action: () => insertAtCursor("\n- Item\n")
+        },
+        {
+            id: "ol",
+            tip: "Lista numerada",
+            icon: <i className="fa-solid fa-list-ol"></i>,
+            action: () => insertAtCursor("\n1. Item\n")
+        },
+        {
+            id: "check",
+            tip: "Lista de tareas",
+            icon: <i className="fa-solid fa-square-check"></i>,
+            action: () => insertAtCursor("\n- [ ] Tarea\n")
+        },
+        {
+            id: "minus",
+            tip: "Línea separadora",
+            icon: <i className="fa-solid fa-minus"></i>,
+            action: () => insertAtCursor("\n---\n")
+        },
+        {
+            id: "image",
+            tip: "Insertar Imagen",
+            icon: <i className="fa-solid fa-image"></i>,
+            action: () => insertAtCursor("![AltTexto](url_imagen)")
+        },
+        {
+            id: "link",
+            tip: "Insertar Enlace",
+            icon: <i className="fa-solid fa-link"></i>,
+            action: () => insertAtCursor("[Texto_Link](https://)")
+        },
+        {
+            id: "quote",
+            tip: "Insertar Cita",
+            icon: <i className="fa-solid fa-quote-left"></i>,
+            action: () => insertAtCursor("\n> Cita importante...\n")
+        },
+        {
+            id: "table",
+            tip: "Insertar Tabla",
+            icon: <i className="fa-solid fa-table"></i>,
+            action: () => insertAtCursor("\n| Columna 1 | Columna 2 |\n| --------- | --------- |\n| Fila 1    | Fila 2    |\n")
+        },
+        {
+            id: "code",
+            tip: "Código en bloque",
+            icon: <i className="fa-solid fa-file-code"></i>,
+            action: () => insertAtCursor("\n```javascript\n// Código aquí\n```\n")
+        },
+        {
+            id: "witip",
+            tip: "Caja de consejo (WiTip)",
+            icon: <i className="fa-solid fa-lightbulb"></i>,
+            action: () => insertAtCursor("\n<witip tipo=\"info\">\nEscribe tu consejo aquí...\n</witip>\n")
+        },
+        {
+            id: "modal",
+            tip: "Contenido desplegable (Modal)",
+            icon: <i className="fa-solid fa-circle-play"></i>,
+            action: () => insertAtCursor("\n<modal titulo=\"Ver contenido oculto\">\nContenido secreto...\n</modal>\n")
+        }
+    ];
+
+    // Manejar Tags (Separación automática por comas estilo Wiihope)
     const addTag = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" || e.key === ",") {
             e.preventDefault();
-            const t = tagInp.trim().toLowerCase().replace(/\s+/g, "_");
-            if (t && !tags.includes(t) && tags.length < 8) {
-                setTags([...tags, t]);
-                setTagInp("");
+            const inputs = tagInp.toLowerCase().split(",");
+            const nuevosTags: string[] = [];
+
+            inputs.forEach((part) => {
+                const t = part
+                    .trim()
+                    .replace(/\s+/g, "_")
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "");
+                if (t && !tags.includes(t) && !nuevosTags.includes(t)) {
+                    nuevosTags.push(t);
+                }
+            });
+
+            if (nuevosTags.length > 0) {
+                setTags(prev => [...prev, ...nuevosTags].slice(0, 8));
             }
+            setTagInp("");
         }
     };
 
@@ -197,6 +393,12 @@ export default function NuevoBlog() {
                 Mensaje("¡Historia publicada con éxito! 🐾✨", "success");
             }
 
+            // Limpiar borrador de localStorage al publicar con éxito
+            if (!editSlug) {
+                localStorage.removeItem("amorwii_blog_form");
+                localStorage.removeItem("amorwii_blog_tags");
+            }
+
             // Redireccionar al post limpio en la raíz
             router.push(`/${form.slug}`);
 
@@ -254,7 +456,29 @@ export default function NuevoBlog() {
                         />
                         <div className="nu_slug_box">
                             <span className="nu_slug_label"><i className="fa-solid fa-link"></i> amorwii.com/</span>
-                            <input id="nu_slug" type="text" value={form.slug} onChange={change} placeholder="url_amigable (mínimo 11 caracteres)" required />
+                            <input id="nu_slug" type="text" value={form.slug} onChange={change} placeholder="mi_historia_de_amor" maxLength={35} required />
+                        </div>
+                        <div className="nu_slug_status">
+                            {slugStatus === "buscando" && (
+                                <span className="buscando">
+                                    <i className="fa-solid fa-spinner fa-spin"></i> Validando enlace...
+                                </span>
+                            )}
+                            {slugStatus === "libre" && (
+                                <span className="libre">
+                                    <i className="fa-solid fa-circle-check"></i> ¡Enlace disponible y listo para brillar! ✨
+                                </span>
+                            )}
+                            {slugStatus === "ocupado" && (
+                                <span className="ocupado">
+                                    <i className="fa-solid fa-circle-xmark"></i> Este enlace ya está en uso. Elige otro nombre.
+                                </span>
+                            )}
+                            {slugStatus === "corto" && (
+                                <span className="corto">
+                                    <i className="fa-solid fa-triangle-exclamation"></i> Mínimo 11 caracteres (letras, números y guiones).
+                                </span>
+                            )}
                         </div>
                     </div>
 
@@ -283,14 +507,20 @@ export default function NuevoBlog() {
 
                         {/* Toolbar - Oculta en Preview */}
                         {vista === 'edit' && (
-                            <div className="nu_toolbar" style={{ flexWrap: "wrap" }}>
-                                <button type="button" className="nu_tool" onClick={() => insertAtCursor("**Negrita**")}><b>B</b></button>
-                                <button type="button" className="nu_tool" onClick={() => insertAtCursor("*Cursiva*")}><i>I</i></button>
-                                <button type="button" className="nu_tool" onClick={() => insertAtCursor("## ")}>H2</button>
-                                <button type="button" className="nu_tool" onClick={() => insertAtCursor("![AltTexto](url_imagen)")}><i className="fa-solid fa-image"></i></button>
-                                <button type="button" className="nu_tool" onClick={() => insertAtCursor("[Texto_Link](https://)")}><i className="fa-solid fa-link"></i></button>
-                                <button type="button" className="nu_tool" onClick={() => insertAtCursor("\n<witip tipo=\"info\">\nEscribe tu consejo aquí...\n</witip>\n")} title="WiTip"><i className="fa-solid fa-lightbulb"></i></button>
-                                <button type="button" className="nu_tool" onClick={() => insertAtCursor("\n<modal titulo=\"Ver contenido oculto\">\nContenido secreto...\n</modal>\n")} title="Modal"><i className="fa-solid fa-circle-play"></i></button>
+                            <div className="nu_toolbar">
+                                {tools.map((t) => (
+                                    <Witip key={t.id} show={hoveredTool === t.id} msg={t.tip} tipo="mco">
+                                        <button
+                                            type="button"
+                                            className="nu_tool"
+                                            onClick={t.action}
+                                            onMouseEnter={() => setHoveredTool(t.id)}
+                                            onMouseLeave={() => setHoveredTool(null)}
+                                        >
+                                            {t.icon}
+                                        </button>
+                                    </Witip>
+                                ))}
                             </div>
                         )}
 
@@ -317,6 +547,16 @@ export default function NuevoBlog() {
                                 )}
                             </div>
                         )}
+
+                        {/* Footer de Estadísticas en tiempo real */}
+                        <div className="nu_content_footer">
+                            <span>
+                                <i className="fa-solid fa-font"></i> {stats.words} {stats.words === 1 ? 'palabra' : 'palabras'}
+                            </span>
+                            <span>
+                                <i className="fa-solid fa-clock"></i> {stats.min} {stats.min === 1 ? 'minuto' : 'minutos'} de lectura
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -362,15 +602,31 @@ export default function NuevoBlog() {
 
                     {/* Imágenes */}
                     <div className="nu_card">
-                        <div className="nu_card_title"><i className="fa-solid fa-image"></i> Imágenes (URLs)</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "1.5vh" }}>
-                            <div>
-                                <label className="nu_hint">Miniatura (Blog)</label>
-                                <input id="nu_imagen" type="url" value={form.imagen} onChange={change} placeholder="https://..." required />
+                        <div className="nu_card_title"><i className="fa-solid fa-images"></i> Imágenes</div>
+                        <div className="nu_img_container">
+                            <div style={{ display: "flex", flexDirection: "column", gap: "0.5vh" }}>
+                                <label htmlFor="nu_imagen"><i className="fa-solid fa-compress"></i> Miniatura (Inicio-Blog)</label>
+                                <input id="nu_imagen" type="url" value={form.imagen} onChange={change} placeholder="https://... (Sugerido: 334x208px)" required />
+                                {form.imagen && form.imagen.startsWith("http") && (
+                                    <div className="nu_img_prev">
+                                        <img src={form.imagen} alt="Miniatura Blog" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                                        <button type="button" className="nu_img_clear" onClick={() => setForm(p => ({ ...p, imagen: "" }))} title="Quitar Miniatura">
+                                            <i className="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <div>
-                                <label className="nu_hint">Imagen Top (Banner)</label>
-                                <input id="nu_imagenTop" type="url" value={form.imagenTop} onChange={change} placeholder="https://..." />
+                            <div style={{ display: "flex", flexDirection: "column", gap: "0.5vh" }}>
+                                <label htmlFor="nu_imagenTop"><i className="fa-solid fa-image"></i> ImagenTop (Post)</label>
+                                <input id="nu_imagenTop" type="url" value={form.imagenTop} onChange={change} placeholder="https://... (Sugerido: 1180x425px u horizontal)" />
+                                {form.imagenTop && form.imagenTop.startsWith("http") && (
+                                    <div className="nu_img_prev">
+                                        <img src={form.imagenTop} alt="Imagen Top Banner" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                                        <button type="button" className="nu_img_clear" onClick={() => setForm(p => ({ ...p, imagenTop: "" }))} title="Quitar Imagen Top">
+                                            <i className="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

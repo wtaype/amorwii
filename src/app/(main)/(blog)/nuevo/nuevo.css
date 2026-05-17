@@ -114,6 +114,7 @@
   justify-content: space-between;
   padding-top: 0.6vh;
   border-top: 1px solid var(--brd);
+  margin-top: 1.5vh;
 }
 .nu_content_footer span {
   font-size: var(--fz_s3);
@@ -220,18 +221,24 @@
   padding: 0 0.3vh;
   transition: all var(--tr_f);
 }
-.nu_slug_status.ok { color: var(--success); }
-.nu_slug_status.err { color: var(--error); }
+.nu_slug_status span { display: flex; align-items: center; gap: 0.5vh; }
+.nu_slug_status .buscando { color: var(--tx3); }
+.nu_slug_status .libre { color: var(--success); font-weight: 600; }
+.nu_slug_status .ocupado { color: var(--error); font-weight: 600; }
+.nu_slug_status .corto { color: var(--warning); }
 
 /* ── 5. TOOLBAR HTML ─────────────────────────────── */
 .nu_toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4vh;
+  gap: 0.8vh;
   padding: 0.6vh;
   background: var(--bg4);
   border-radius: 0.6vh;
   border: 1px solid var(--brd);
+}
+.nu_toolbar > div {
+  width: auto !important;
 }
 .nu_tool {
   width: 3.6vh;
@@ -289,7 +296,7 @@
   border-radius: 0.6vh;
 }
 .nu_html_prev {
-  min-height: 36vh;
+  min-height: 51vh;
   padding: 1.5vh 2vh;
   background: var(--bg3);
   border-radius: 0.8vh;
@@ -334,6 +341,20 @@
   transition: all var(--tr_f);
 }
 .nu_img_clear:hover { background: var(--error); }
+
+.nu_img_container {
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+}
+.nu_img_container label {
+  font-size: var(--fz_s4);
+  color: var(--tx2);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5vh;
+}
 
 /* ── 8. SUGERENCIAS Y CHIPS (Categorías y Tags) ──────────────────────────── */
 .nu_sug_box {
