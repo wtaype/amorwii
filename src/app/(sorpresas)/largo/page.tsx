@@ -17,6 +17,9 @@ function LargoContent() {
     if (pl) {
       const dec = (k: string) => decodeURIComponent((p.get(k) || "").replace(/\+/g, " "));
       setData({
+        id: "largo",
+        vistas: 0,
+        likes: 0,
         de: dec("de"),
         para: dec("para"),
         msg: dec("msg"),
