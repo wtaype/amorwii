@@ -122,7 +122,7 @@ function useCreator() {
         setFormState((prev) => {
             const next = { ...prev, [field]: value };
             if (field === "para") {
-                const autoSlug = value.toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
+                const autoSlug = value.toLowerCase().replace(/[^a-z0-9_]+/g, "").slice(0, 10).trim();
                 if (autoSlug) {
                     next.slug = autoSlug;
                 }
@@ -155,8 +155,8 @@ function useCreator() {
         try {
             const slug = form.slug.trim();
 
-            // Validar PIN si se especificó
-            const pinFinal = form.pin.trim();
+            // Validar PIN si se especificó y el usuario está autenticado (Premium)
+            const pinFinal = isAuth ? form.pin.trim() : "";
             if (pinFinal && (pinFinal.length !== 4 || isNaN(Number(pinFinal)))) {
                 throw new Error("El PIN de seguridad debe contener exactamente 4 números.");
             }
@@ -183,7 +183,16 @@ function useCreator() {
             ).then(results => results.filter((url): url is string => url !== null));
 
             // 1. Validar slug único en la tabla correspondiente
-            let slugFinal = slug || form.para.toLowerCase().replace(/[^a-z0-9]+/g, "");
+            let slugFinal = slug || form.para.toLowerCase().replace(/[^a-z0-9_]+/g, "");
+
+            // Validar longitud y caracteres permitidos del slug elegido por el usuario
+            if (slugFinal.length > 10) {
+                throw new Error("El enlace personalizado no puede superar los 10 caracteres.");
+            }
+            if (/[^a-z0-9_]/.test(slugFinal)) {
+                throw new Error("El enlace personalizado solo puede contener letras, números y guión bajo (_). No se permiten guiones medios (-) ni otros caracteres especiales.");
+            }
+
             const targetTable = isAuth ? "detalles" : "sorpresas";
 
             const { data: existing, error: checkError } = await supabase
@@ -621,7 +630,24 @@ function CardLinks({ form, setField, guardar, loading, urlLarga, urlCorta, copia
                     <Witip show={reservada} msg="¡Nombre reservado!" tipo="mco">
                         <input
                             value={form.slug}
-                            onChange={(e) => setField("slug", e.target.value)}
+                            onChange={(e) => {
+                                const originalVal = e.target.value;
+                                let val = originalVal.toLowerCase();
+
+                                // Verificar si contiene caracteres no permitidos
+                                if (/[^a-z0-9_]/.test(val)) {
+                                    Mensaje("Solo se permiten letras, números y guión bajo (_). ¡Sin guiones medios ni otros símbolos! ⚠️", "warning");
+                                    val = val.replace(/[^a-z0-9_]+/g, "");
+                                }
+
+                                // Verificar si supera los 10 caracteres
+                                if (val.length > 10) {
+                                    Mensaje("El enlace personalizado no puede superar los 10 caracteres. ⚠️", "warning");
+                                    val = val.slice(0, 10);
+                                }
+
+                                setField("slug", val);
+                            }}
                             placeholder={`ej: ${form.para || "deysi"}`}
                             className={reservada ? "cr_inp_error" : ""}
                         />
@@ -632,29 +658,31 @@ function CardLinks({ form, setField, guardar, loading, urlLarga, urlCorta, copia
                 {reservada && <p className="cr_slug_error">⚠️ "{slug}" está reservado. Prueba con otro nombre.</p>}
             </div>
 
-            {/* 🆕 SECCIÓN DE PIN DE SEGURIDAD PREMIUM */}
-            <div className="cr_url_row" style={{ marginTop: "2vh" }}>
-                <label>
-                    <i className="fas fa-lock" /> PIN de Seguridad <small>(Opcional - 4 números)</small>:
-                </label>
-                <div className="cr_inp" style={{ maxWidth: "200px", marginTop: "0.5vh" }}>
-                    <i className="fas fa-key" style={{ color: "var(--tx3)" }} />
-                    <input
-                        type="text"
-                        maxLength={4}
-                        placeholder="Ej: 0712"
-                        value={form.pin}
-                        onChange={(e) => {
-                            const val = e.target.value.replace(/[^0-9]/g, ""); // Solo permitir números
-                            setField("pin", val);
-                        }}
-                        style={{ letterSpacing: form.pin ? "0.3em" : "normal", fontWeight: form.pin ? "bold" : "normal" }}
-                    />
+            {/* 🆕 SECCIÓN DE PIN DE SEGURIDAD PREMIUM - Solo visible para usuarios autenticados */}
+            {isAuth && (
+                <div className="cr_url_row" style={{ marginTop: "2vh" }}>
+                    <label>
+                        <i className="fas fa-lock" /> PIN de Seguridad <small>(Opcional - 4 números)</small>:
+                    </label>
+                    <div className="cr_inp" style={{ maxWidth: "200px", marginTop: "0.5vh" }}>
+                        <i className="fas fa-key" style={{ color: "var(--tx3)" }} />
+                        <input
+                            type="text"
+                            maxLength={4}
+                            placeholder="Ej: 0712"
+                            value={form.pin}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, ""); // Solo permitir números
+                                setField("pin", val);
+                            }}
+                            style={{ letterSpacing: form.pin ? "0.3em" : "normal", fontWeight: form.pin ? "bold" : "normal" }}
+                        />
+                    </div>
+                    <p className="cr_info_txt" style={{ fontSize: "0.8em", marginTop: "0.5vh", opacity: 0.8 }}>
+                        Si configuras un PIN, tu pareja deberá escribirlo para abrir la dedicatoria. ¡Perfecto para fechas especiales!
+                    </p>
                 </div>
-                <p className="cr_info_txt" style={{ fontSize: "0.8em", marginTop: "0.5vh", opacity: 0.8 }}>
-                    Si configuras un PIN, tu pareja deberá escribirlo para abrir la dedicatoria. ¡Perfecto para fechas especiales!
-                </p>
-            </div>
+            )}
 
             <div className="cr_save" style={{ marginTop: "3vh" }}>
                 <Witip show={!form.para.trim()} msg="¡Falta su nombre!" tipo="mco">

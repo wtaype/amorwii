@@ -145,6 +145,11 @@ function NuevoPostContent() {
       return;
     }
 
+    if (form.slug.trim().length < 11) {
+      Mensaje("El slug del artículo de blog debe tener como mínimo 11 y maximo 35 caracteres. ⚠️", "warning");
+      return;
+    }
+
     setCargando(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -251,7 +256,7 @@ function NuevoPostContent() {
             />
             <div className="nu_slug_box">
               <span className="nu_slug_label"><i className="fa-solid fa-link"></i> amorwii.com/</span>
-              <input id="nu_slug" type="text" value={form.slug} onChange={change} placeholder="url_amigable" required />
+              <input id="nu_slug" type="text" value={form.slug} onChange={change} placeholder="url_amigable (mínimo 11 caracteres)" required />
             </div>
           </div>
 
