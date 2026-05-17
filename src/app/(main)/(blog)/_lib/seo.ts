@@ -17,7 +17,7 @@ export function generarSchemaPost(post: Post) {
       "name": post.autor,
       "url": "https://amorwii.com"
     }],
-    "description": post.resumen,
+    "description": post.descripcion,
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": `https://amorwii.com/${post.slug}`
@@ -34,14 +34,14 @@ export function generarMetaPost(post: Post) {
 
   return {
     title: `${post.titulo} | AmorWii`,
-    description: post.resumen,
-    keywords: post.keywords,
+    description: post.descripcion,
+    keywords: post.metaSEO?.keywords || "",
     alternates: {
       canonical: url,
     },
     openGraph: {
       title: post.titulo,
-      description: post.resumen,
+      description: post.descripcion,
       url: url,
       siteName: "AmorWii",
       locale: "es_ES",
@@ -58,7 +58,7 @@ export function generarMetaPost(post: Post) {
     twitter: {
       card: 'summary_large_image',
       title: post.titulo,
-      description: post.resumen,
+      description: post.descripcion,
       images: [image],
       creator: "@wilder.taype",
     }
