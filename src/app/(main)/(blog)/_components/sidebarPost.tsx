@@ -45,7 +45,7 @@ export default function SidebarPost({ post }: SidebarProps) {
           </li>
           <li>
             <i className="fa-solid fa-clock"></i>
-            <span>Lectura: <strong>{post.tiempoLectura}</strong></span>
+            <span>Lectura: <strong>{post.lecturaTM}</strong></span>
           </li>
           <li>
             <i className="fa-solid fa-tags"></i>
