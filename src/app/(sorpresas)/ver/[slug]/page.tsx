@@ -6,7 +6,7 @@ interface VerPageProps {
   params: Promise<{ slug: string }>;
 }
 
-const FALLBACK = { de: "", para: "", msg: "", plantilla: "Amor1", fondo: "1", efectoId: "corazones", musicUrl: "", fotos: [] as string[], activo: false };
+const FALLBACK = { id: "", de: "", para: "", msg: "", plantilla: "Amor1", fondo: "1", efectoId: "corazones", musicUrl: "", fotos: [] as string[], activo: false, vistas: 0, likes: 0, nps: [] as number[], feedbacks: [] as string[] };
 
 /**
  * METADATOS LIMPIOS Y SENCILLOS PARA SORPRESAS PÚBLICAS

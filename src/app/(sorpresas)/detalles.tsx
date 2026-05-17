@@ -18,9 +18,10 @@ export type DetallesData = {
     activo: boolean;
     pin?: string | null;
     vistas: number;
-    respuesta?: string | null;
-    nps?: number | null;
-    feedback?: string | null;
+    likes: number;
+    respuestas?: string[] | null;
+    nps?: number[] | null;
+    feedbacks?: string[] | null;
 };
 
 export default function DetallesView({ data: initialData }: { data: DetallesData }) {
@@ -36,21 +37,20 @@ export default function DetallesView({ data: initialData }: { data: DetallesData
     const [enviandoFeedback, setEnviandoFeedback] = useState(false);
     const [feedbackEnviado, setFeedbackEnviado] = useState(false);
 
+    // Estados para Optimistic UI (Likes)
+    const [optimisticLikes, setOptimisticLikes] = useState(initialData.likes || 0);
+    const [liked, setLiked] = useState(false);
+
     // Incrementar el contador de vistas al abrir la sorpresa
     useEffect(() => {
         const registrarVista = async () => {
             try {
-                // Incremento de vistas atómico silencioso
-                await supabase
-                    .from("detalles")
-                    .update({ vistas: (data.vistas || 0) + 1 })
-                    .eq("id", data.id);
+                await supabase.rpc('incrementar_vistas_detalles', { detalle_id: data.id });
             } catch (err) {
                 console.warn("No se pudo registrar la vista:", err);
             }
         };
 
-        // Si no tiene PIN, o si ya validó el PIN, registramos la vista
         if (!data.pin || pinValidado) {
             registrarVista();
         }
@@ -92,15 +92,11 @@ export default function DetallesView({ data: initialData }: { data: DetallesData
 
         setEnviandoFeedback(true);
         try {
-            const { error } = await supabase
-                .from("detalles")
-                .update({
-                    nps: npsSelected,
-                    respuesta: respuestaTxt.trim() || null,
-                    feedback: respuestaTxt.trim() ? `Respuesta Premium: ${respuestaTxt.trim()}` : null,
-                    actualizado: new Date().toISOString()
-                })
-                .eq("id", data.id);
+            const { error } = await supabase.rpc("agregar_feedback_detalle", {
+                p_id: data.id,
+                p_nps: npsSelected,
+                p_respuesta: respuestaTxt.trim() || null
+            });
 
             if (error) throw error;
             setFeedbackEnviado(true);
@@ -109,6 +105,22 @@ export default function DetallesView({ data: initialData }: { data: DetallesData
             alert("No se pudo enviar tu respuesta. Intenta de nuevo.");
         } finally {
             setEnviandoFeedback(false);
+        }
+    };
+
+    // Incrementar Likes (Optimistic UI)
+    const handleLike = async () => {
+        if (liked) return;
+        
+        setLiked(true);
+        setOptimisticLikes(prev => prev + 1);
+        
+        try {
+            await supabase.rpc('incrementar_likes_detalles', { detalle_id: data.id });
+        } catch (err) {
+            console.warn("No se pudo registrar el like:", err);
+            setLiked(false);
+            setOptimisticLikes(prev => prev - 1);
         }
     };
 
@@ -123,7 +135,7 @@ export default function DetallesView({ data: initialData }: { data: DetallesData
                         <p className="de_lock_info">
                             Esta sorpresa es súper especial, romántica y segura. Ingresa el PIN de 4 números para abrir tu regalo:
                         </p>
-                        
+
                         <div className="de_pin_input_row">
                             <input
                                 type="password"
@@ -207,10 +219,36 @@ export default function DetallesView({ data: initialData }: { data: DetallesData
                     </div>
                 )}
 
+                {/* 💖 SECCIÓN DE LIKES (Optimistic UI) */}
+                <div style={{ textAlign: "center", marginBottom: "3vh", marginTop: "1vh" }}>
+                    <button 
+                        onClick={handleLike}
+                        disabled={liked}
+                        style={{
+                            background: liked ? "rgba(255, 92, 105, 0.15)" : "rgba(255,255,255,0.05)",
+                            border: liked ? "1px solid rgba(255, 92, 105, 0.5)" : "1px solid rgba(255,255,255,0.2)",
+                            borderRadius: "20px",
+                            padding: "1vh 4vw",
+                            color: liked ? "#FF5C69" : "#fff",
+                            cursor: liked ? "default" : "pointer",
+                            fontSize: "1.1rem",
+                            fontWeight: "bold",
+                            transition: "all 0.3s ease",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            boxShadow: liked ? "0 4px 15px rgba(255, 92, 105, 0.2)" : "none"
+                        }}
+                    >
+                        <i className={`fa-heart ${liked ? "fas de_shake" : "far"}`} style={{ color: liked ? "#FF5C69" : "inherit" }} />
+                        {optimisticLikes} {optimisticLikes === 1 ? "Me gusta" : "Me gustas"}
+                    </button>
+                </div>
+
                 {/* 🆕 SECCIÓN DE INTERACCIÓN: RESPUESTA & NPS */}
                 <div className="de_feedback_section">
                     <h3>¿Te gustó esta sorpresa? Dejale una respuesta</h3>
-                    
+
                     {feedbackEnviado ? (
                         <div className="de_feedback_success">
                             <i className="fas fa-check-circle" />
@@ -265,13 +303,13 @@ export default function DetallesView({ data: initialData }: { data: DetallesData
             {/* Efecto de partículas de amor elevándose */}
             <div className="de_particles">
                 {[...Array(15)].map((_, i) => (
-                    <div key={i} className="de_particle" 
-                         style={{ 
-                             left: `${Math.random() * 100}%`, 
-                             fontSize: `${Math.random() * 1.5 + 1}rem`,
-                             animationDuration: `${Math.random() * 4 + 3}s`,
-                             animationDelay: `${Math.random() * 3}s`
-                         }}>
+                    <div key={i} className="de_particle"
+                        style={{
+                            left: `${Math.random() * 100}%`,
+                            fontSize: `${Math.random() * 1.5 + 1}rem`,
+                            animationDuration: `${Math.random() * 4 + 3}s`,
+                            animationDelay: `${Math.random() * 3}s`
+                        }}>
                         {data.efectoId === 'estrellas' ? '✨' : '❤️'}
                     </div>
                 ))}

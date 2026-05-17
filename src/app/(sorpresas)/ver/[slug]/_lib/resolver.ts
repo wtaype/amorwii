@@ -18,7 +18,7 @@ const traerSorpresaPublicaConCache = unstable_cache(
       const sb = createSupabaseServerStatic();
       const { data } = await sb
         .from("sorpresas") // 🟢 Apunta a la tabla de sorpresas anónimas
-        .select("id,slug,de,para,msg,plantilla,fondo,efectoId,musicUrl,fotos,activo,vistas,nps,feedback,expira,creado")
+        .select("id,slug,de,para,msg,plantilla,fondo,efectoId,musicUrl,fotos,activo,vistas,likes,nps,feedbacks,expira,creado")
         .eq("slug", slug)
         .maybeSingle();
       return data;

@@ -39,7 +39,7 @@ const traerSorpresaRegistradaConCache = unstable_cache(
       const sb = createSupabaseServerStatic();
       const { data } = await sb
         .from("detalles") // 🟢 Apunta a la nueva tabla premium 'detalles'
-        .select("id,slug,de,para,msg,plantilla,fondo,efectoId,musicUrl,fotos,userId,email,usuario,activo,plan,pin,vistas,respuesta,nps,feedback")
+        .select("id,slug,de,para,msg,plantilla,fondo,efectoId,musicUrl,fotos,userId,email,usuario,activo,plan,pin,vistas,likes,respuestas,nps,feedbacks")
         .eq("slug", slug)
         .maybeSingle();
       return data;

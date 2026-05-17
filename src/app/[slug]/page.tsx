@@ -89,7 +89,7 @@ export default async function UniversalPage({ params }: UniversalPageProps) {
   // CASO B: ES UNA SORPRESA PREMIUM (TABLA DETALLES)
   if (result.tipo === "sorpresa") {
     const sorpresa = result.data;
-    const FALLBACK = { id: "", slug: "", de: "", para: "", msg: "", plantilla: "Amor1", fondo: "1", efectoId: "corazones", musicUrl: "", fotos: [] as string[], activo: false, vistas: 0 };
+    const FALLBACK = { id: "", slug: "", de: "", para: "", msg: "", plantilla: "Amor1", fondo: "1", efectoId: "corazones", musicUrl: "", fotos: [] as string[], activo: false, vistas: 0, likes: 0, respuestas: [] as string[], nps: [] as number[], feedbacks: [] as string[] };
     return <DetallesView data={sorpresa ?? FALLBACK} />;
   }
 
