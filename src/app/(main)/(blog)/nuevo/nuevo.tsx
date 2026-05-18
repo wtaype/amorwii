@@ -51,7 +51,7 @@ function getContenidoStats(mdText: string) {
         .replace(/\[(.*?)\]\(.*?\)/g, "$1") // Conservar texto del link
         .replace(/[*#_`>~-]/g, "") // Quitar caracteres de estilo md
         .trim();
-    
+
     const words = cleanText ? cleanText.split(/\s+/).length : 0;
     const min = Math.max(1, Math.ceil(words / 200));
     return { words, min };
@@ -68,7 +68,9 @@ export default function NuevoBlog() {
     const [cargandoDatos, setCargandoDatos] = useState(false);
     const [vista, setVista] = useState<"edit" | "prev">("edit");
     const [hoveredTool, setHoveredTool] = useState<string | null>(null);
-    const [slugStatus, setSlugStatus] = useState<"libre" | "ocupado" | "corto" | "buscando" | null>(null);
+    const [slugStatus, setSlugStatus] = useState<"libre" | "ocupado" | "corto" | "largo" | "buscando" | null>(null);
+    const [focusedField, setFocusedField] = useState<"titulo" | "slug" | "descripcion" | "keywords" | null>(null);
+    const [hoveredField, setHoveredField] = useState<"titulo" | "slug" | "descripcion" | "keywords" | null>(null);
 
     // Estado del Formulario (con persistencia inteligente useBorrador)
     const [form, setForm] = useBorrador("amorwii_blog_form", {
@@ -154,6 +156,11 @@ export default function NuevoBlog() {
 
         if (limpio.length < 11) {
             setSlugStatus("corto");
+            return;
+        }
+
+        if (limpio.length > 32) {
+            setSlugStatus("largo");
             return;
         }
 
@@ -445,38 +452,70 @@ export default function NuevoBlog() {
                     {/* Título y Enlace */}
                     <div className="nu_card">
                         <div className="nu_card_title"><i className="fa-solid fa-heading"></i> Título y Enlace</div>
-                        <input
-                            id="nu_titulo"
-                            type="text"
-                            className="nu_titulo_inp"
-                            placeholder="Escribe un título impactante..."
-                            value={form.titulo}
-                            onChange={change}
-                            required
-                        />
-                        <div className="nu_slug_box">
-                            <span className="nu_slug_label"><i className="fa-solid fa-link"></i> amorwii.com/</span>
-                            <input id="nu_slug" type="text" value={form.slug} onChange={change} placeholder="mi_historia_de_amor" maxLength={35} required />
-                        </div>
+                        <Witip
+                            show={(focusedField === "titulo" || hoveredField === "titulo") && form.titulo.length > 0}
+                            tipo={
+                                form.titulo.length < 35 ? "warning" : "success"
+                            }
+                            msg={
+                                form.titulo.length < 35 ? `Te faltan ${35 - form.titulo.length} para tener un título ideal (Mínimo: 35)` :
+                                    `Excelente título de ${form.titulo.length}/47`
+                            }
+                        >
+                            <input
+                                id="nu_titulo"
+                                type="text"
+                                className="nu_titulo_inp"
+                                placeholder="Escribe un título impactante... (Mínimo: 35, Máximo: 47 caracteres)"
+                                value={form.titulo}
+                                onChange={change}
+                                onFocus={() => setFocusedField("titulo")}
+                                onBlur={() => setFocusedField(null)}
+                                onMouseEnter={() => setHoveredField("titulo")}
+                                onMouseLeave={() => setHoveredField(null)}
+                                maxLength={47}
+                                required
+                            />
+                        </Witip>
+                        <Witip
+                            show={
+                                (focusedField === "slug" || hoveredField === "slug") &&
+                                !!slugStatus
+                            }
+                            tipo={
+                                slugStatus === "buscando" ? "mco" :
+                                    slugStatus === "libre" ? "success" :
+                                        slugStatus === "corto" ? "warning" : "error"
+                            }
+                            msg={
+                                slugStatus === "buscando" ? "Validando disponibilidad..." :
+                                    slugStatus === "libre" ? `Excelente enlace de ${form.slug.length}/32` :
+                                        slugStatus === "corto" ? `Te faltan ${11 - form.slug.length} para tener un enlace ideal (Mínimo: 11)` :
+                                            slugStatus === "largo" ? `Te pasaste por ${form.slug.length - 32}. Máximo: 32` :
+                                                slugStatus === "ocupado" ? "Este enlace ya está en uso. Elige otro." : ""
+                            }
+                        >
+                            <div className="nu_slug_box">
+                                <span className="nu_slug_label"><i className="fa-solid fa-link"></i> amorwii.com/</span>
+                                <input
+                                    id="nu_slug"
+                                    type="text"
+                                    value={form.slug}
+                                    onChange={change}
+                                    onFocus={() => setFocusedField("slug")}
+                                    onBlur={() => setFocusedField(null)}
+                                    onMouseEnter={() => setHoveredField("slug")}
+                                    onMouseLeave={() => setHoveredField(null)}
+                                    placeholder="mi_historia_de_amor (Mínimo: 11, Máximo: 32 caracteres)"
+                                    maxLength={32}
+                                    required
+                                />
+                            </div>
+                        </Witip>
                         <div className="nu_slug_status">
-                            {slugStatus === "buscando" && (
-                                <span className="buscando">
-                                    <i className="fa-solid fa-spinner fa-spin"></i> Validando enlace...
-                                </span>
-                            )}
                             {slugStatus === "libre" && (
                                 <span className="libre">
                                     <i className="fa-solid fa-circle-check"></i> ¡Enlace disponible y listo para brillar! ✨
-                                </span>
-                            )}
-                            {slugStatus === "ocupado" && (
-                                <span className="ocupado">
-                                    <i className="fa-solid fa-circle-xmark"></i> Este enlace ya está en uso. Elige otro nombre.
-                                </span>
-                            )}
-                            {slugStatus === "corto" && (
-                                <span className="corto">
-                                    <i className="fa-solid fa-triangle-exclamation"></i> Mínimo 11 caracteres (letras, números y guiones).
                                 </span>
                             )}
                         </div>
@@ -486,12 +525,68 @@ export default function NuevoBlog() {
                     <div className="nu_grid_seo">
                         <div className="nu_card">
                             <div className="nu_card_title"><i className="fa-solid fa-align-left"></i> Descripción (SEO)</div>
-                            <textarea id="nu_descripcion" value={form.descripcion} onChange={change} rows={3} placeholder="Describe la historia... (Mínimo: 50, Máximo: 160 caracteres)" maxLength={160} required />
-                            <div className="nu_counter">{form.descripcion.length}/160</div>
+                            <Witip
+                                show={(focusedField === "descripcion" || hoveredField === "descripcion") && form.descripcion.length > 0}
+                                tipo={
+                                    form.descripcion.length < 100 ? "warning" :
+                                        form.descripcion.length <= 150 ? "success" : "error"
+                                }
+                                msg={
+                                    form.descripcion.length < 100 ? `Te faltan ${100 - form.descripcion.length} para tener una descripción ideal (Mínimo: 100)` :
+                                        form.descripcion.length <= 150 ? `Excelente descripción de ${form.descripcion.length}/150` :
+                                            `Te pasaste por ${form.descripcion.length - 150}. Máximo: 150`
+                                }
+                            >
+                                <textarea
+                                    id="nu_descripcion"
+                                    value={form.descripcion}
+                                    onChange={change}
+                                    onFocus={() => setFocusedField("descripcion")}
+                                    onBlur={() => setFocusedField(null)}
+                                    onMouseEnter={() => setHoveredField("descripcion")}
+                                    onMouseLeave={() => setHoveredField(null)}
+                                    rows={3}
+                                    placeholder="Describe la historia... (Mínimo: 100, Máximo: 150 caracteres)"
+                                    maxLength={150}
+                                    required
+                                />
+                            </Witip>
                         </div>
                         <div className="nu_card">
-                            <div className="nu_card_title"><i className="fa-solid fa-search"></i> Metadatos</div>
-                            <textarea id="nu_keywords" value={form.keywords} onChange={change} rows={3} placeholder="ej: amor, pareja, consejos (Mínimo: 3, Máximo: 5 palabras)" />
+                            <div className="nu_card_title"><i className="fa-solid fa-search"></i> Metadatos (Keywords)</div>
+                            {(() => {
+                                const cleanKeywords = form.keywords
+                                    ? Array.from(new Set(form.keywords.split(",").map(k => k.trim()).filter(Boolean)))
+                                    : [];
+                                const count = cleanKeywords.length;
+                                return (
+                                    <Witip
+                                        show={(focusedField === "keywords" || hoveredField === "keywords") && form.keywords.length > 0}
+                                        tipo={
+                                            count < 3 ? "warning" :
+                                                count <= 5 ? "success" : "error"
+                                        }
+                                        msg={
+                                            count < 3 ? `Te faltan ${3 - count} para tener una densidad ideal (Mínimo: 3)` :
+                                                count <= 5 ? `Excelente densidad de ${count}/5` :
+                                                    `Te pasaste por ${count - 5}. Máximo: 5`
+                                        }
+                                    >
+                                        <textarea
+                                            id="nu_keywords"
+                                            value={form.keywords}
+                                            onChange={change}
+                                            onFocus={() => setFocusedField("keywords")}
+                                            onBlur={() => setFocusedField(null)}
+                                            onMouseEnter={() => setHoveredField("keywords")}
+                                            onMouseLeave={() => setHoveredField(null)}
+                                            rows={3}
+                                            placeholder="ej: amor, pareja, consejos (Mínimo: 3, Máximo: 5 palabras clave)"
+                                            maxLength={100}
+                                        />
+                                    </Witip>
+                                );
+                            })()}
                         </div>
                     </div>
 

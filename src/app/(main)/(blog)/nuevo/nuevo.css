@@ -525,3 +525,22 @@
   .nu_cats_grid { grid-template-columns: 1fr 1fr 1fr; }
   .nu_code { min-height: 28vh; }
 }
+
+/* ── 15. ASESOR SEO EN TIEMPO REAL ────────────────── */
+.seo_ideal { color: var(--success) !important; font-weight: 600; }
+.seo_warning { color: var(--warning) !important; font-weight: 600; }
+.seo_danger { color: var(--error) !important; font-weight: 600; }
+
+.nu_counter_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--fz_s3);
+  color: var(--tx3);
+  margin-top: 0.4vh;
+}
+.nu_counter_row span {
+  display: flex;
+  align-items: center;
+  gap: 0.4vh;
+}
