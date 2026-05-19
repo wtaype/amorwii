@@ -10,13 +10,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        {/* FontAwesome 7 — disponible para todas las rutas */}
+        {/* Preconexión DNS y TCP anticipada al CDN de FontAwesome */}
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+
+        {/* Carga asíncrona no bloqueante de FontAwesome CSS */}
         <link
+          id="fa-css"
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
           integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
           crossOrigin="anonymous"
           referrerPolicy="no-referrer"
+          media="print"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var l=document.getElementById('fa-css');if(l){l.addEventListener('load',function(){l.media='all'});if(l.sheet){l.media='all'}}})()`,
+          }}
         />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
