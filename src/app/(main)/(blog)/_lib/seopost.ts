@@ -1,4 +1,5 @@
 import { Post } from "./blogData";
+import * as wii from "@/app/wii";
 
 /**
  * Genera el Schema JSON-LD para Google (Article)
@@ -7,7 +8,7 @@ import { Post } from "./blogData";
 export function generarSchemaPost(post: Post) {
   return {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
+    "@type": "Article",
     "headline": post.titulo,
     "image": [post.imagen, post.imagenTop].filter(Boolean),
     "datePublished": post.creado,
@@ -15,12 +16,20 @@ export function generarSchemaPost(post: Post) {
     "author": [{
       "@type": "Person",
       "name": post.autor,
-      "url": "https://amorwii.com"
+      "url": wii.linkme
     }],
+    "publisher": {
+      "@type": "Organization",
+      "name": wii.app,
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${wii.linkweb}/poster.webp`
+      }
+    },
     "description": post.descripcion,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://amorwii.com/${post.slug}`
+      "@id": `${wii.linkweb}/${post.slug}`
     }
   };
 }
@@ -29,11 +38,12 @@ export function generarSchemaPost(post: Post) {
  * Genera los metadatos dinámicos para Next.js
  */
 export function generarMetaPost(post: Post) {
-  const url = `https://amorwii.com/${post.slug}`;
+  const url = `${wii.linkweb}/${post.slug}`;
   const image = post.imagenTop || post.imagen;
+  const altText = post.metaSEO?.altTop || post.metaSEO?.alt || post.titulo;
 
   return {
-    title: `${post.titulo} | AmorWii`,
+    title: `${post.titulo} | ${wii.app}`,
     description: post.descripcion,
     keywords: post.metaSEO?.keywords || "",
     alternates: {
@@ -43,13 +53,13 @@ export function generarMetaPost(post: Post) {
       title: post.titulo,
       description: post.descripcion,
       url: url,
-      siteName: "AmorWii",
+      siteName: wii.app,
       locale: "es_ES",
       images: [{
         url: image,
         width: 1200,
         height: 630,
-        alt: post.titulo
+        alt: altText
       }],
       type: 'article',
       publishedTime: post.creado,
@@ -64,4 +74,5 @@ export function generarMetaPost(post: Post) {
     }
   };
 }
+
 

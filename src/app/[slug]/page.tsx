@@ -3,7 +3,7 @@ export const revalidate = 3600; // Revalidar cada hora
 
 import { notFound } from "next/navigation";
 import { traerPosts } from "../(main)/(blog)/_lib/blogData";
-import { generarMetaPost, generarSchemaPost } from "../(main)/(blog)/_lib/seo";
+import { generarMetaPost, generarSchemaPost } from "../(main)/(blog)/_lib/seopost";
 import PostViewer from "../(main)/(blog)/_components/post";
 import MainLayout from "../(main)/layout";
 import DetallesView from "../(sorpresas)/detalles";
