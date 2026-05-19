@@ -49,43 +49,20 @@ export default function MarkdownPro({ contenido }: MarkdownProProps) {
     a: ({ node, href, children, ...props }: any) => {
       if (!href) return <a {...props}>{children}</a>;
 
-      // Si es un link de YouTube, lo convertimos en un hermoso botón rojo
-      if (href.includes("youtube.com/watch?v=") || href.includes("youtu.be/")) {
-        const videoId = href.split("v=")[1]?.split("&")[0] || href.split("youtu.be/")[1]?.split("?")[0];
+      // Si es un link de YouTube (soporta shorts, watch y youtu.be)
+      if (href.includes("youtube.com") || href.includes("youtu.be")) {
         return (
-          <button
-            type="button"
-            className="po_yt_btn"
-            onClick={() => window.open(href, '_blank')}
-            style={{
-              background: "rgba(255, 255, 255, 0.05)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: "12px",
-              padding: "10px 20px",
-              color: "var(--tx)",
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "10px",
-              fontWeight: "bold",
-              margin: "10px 0"
-            }}
-          >
-            <i className="fab fa-youtube" style={{ color: "#fe0149", fontSize: "1.4em" }}></i>
-            {children || "Ver Video en YouTube"}
-          </button>
+          <ModalBlog 
+            tipo="youtube" 
+            src={href} 
+            titulo={children?.toString() || "Ver Video"} 
+          />
         );
       }
-
-      // Si es otro enlace externo, lo abrimos en pestaña nueva por seguridad
+      
       const isExternal = href.startsWith("http") && !href.includes("amorwii.com");
       return (
-        <a
-          href={href}
-          target={isExternal ? "_blank" : undefined}
-          rel={isExternal ? "noopener noreferrer" : undefined}
-          {...props}
-        >
+        <a href={href} target={isExternal ? "_blank" : undefined} rel={isExternal ? "noopener noreferrer" : undefined} {...props}>
           {children}
         </a>
       );
@@ -93,7 +70,22 @@ export default function MarkdownPro({ contenido }: MarkdownProProps) {
 
     // 4. Componentes Customizados (gracias a rehype-raw)
     witip: ({ node, ...props }: any) => <WiTip tipo={props.tipo}>{props.children}</WiTip>,
-    modal: ({ node, ...props }: any) => <ModalBlog titulo={props.titulo}>{props.children}</ModalBlog>
+    youtube: ({ node, ...props }: any) => (
+      <ModalBlog 
+        tipo="youtube" 
+        src={props.src || props.videoid || props.videoId} 
+        titulo={props.titulo} 
+      />
+    ),
+    modal: ({ node, ...props }: any) => (
+      <ModalBlog 
+        tipo={props.tipo} 
+        src={props.src || props.videoid || props.videoId} 
+        titulo={props.titulo}
+      >
+        {props.children}
+      </ModalBlog>
+    )
   };
 
   return (

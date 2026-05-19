@@ -61,7 +61,7 @@ Cierra tu carta mirando hacia adelante. No prometas cosas imposibles como "bajar
 
 El secreto de una carta inolvidable no radica en ser un escritor profesional, sino en atreverse a abrir el alma. En este emotivo video, te compartimos una reflexión muy especial sobre cómo los pequeños detalles y las cartas sinceras pueden salvar y fortalecer cualquier relación:
 
-[Ver reflexión: El poder de decirle "Te amo" a tiempo 🕊️](https://www.youtube.com/shorts/76e7m6boomA)
+  <youtube src="https://www.youtube.com/watch?v=76e7m6boomA" titulo="Ver Reflexión en YouTube 🎥"></youtube>
 
 ---
 

@@ -1,110 +1,117 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalBlogProps {
   titulo: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  tipo?: "normal" | "youtube" | "video" | "documento" | "imagen";
+  src?: string; // Soportará URLs de youtube, nativas, imágenes o PDFs
 }
 
-export default function ModalBlog({ titulo, children }: ModalBlogProps) {
+// Lógica de extracción de video ID de YouTube centralizada
+const obtenerYoutubeId = (url?: string): string => {
+  if (!url) return "";
+  if (url.length === 11 && !url.includes("/") && !url.includes("?")) {
+    return url; // Ya es un ID crudo
+  }
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : "";
+};
+
+export default function ModalBlog({ titulo, children, tipo = "normal", src }: ModalBlogProps) {
   const [abierto, setAbierto] = useState(false);
+  const [montado, setMontado] = useState(false);
+  const isMedia = tipo === "youtube" || tipo === "video";
+
+  // Asegurar que el portal solo se monte en el cliente tras la hidratación inicial
+  useEffect(() => {
+    setMontado(true);
+  }, []);
+
+  const renderTrigger = () => {
+    switch (tipo) {
+      case "youtube":
+      case "video":
+        return (
+          <button type="button" onClick={() => setAbierto(true)} className="po_yt_btn">
+            <i className={tipo === "youtube" ? "fab fa-youtube" : "fa-solid fa-circle-play"} style={{ color: "#fe0149" }}></i>
+            {titulo || (tipo === "youtube" ? "Ver Video" : "Reproducir Video")}
+          </button>
+        );
+      case "documento":
+        return (
+          <button type="button" onClick={() => setAbierto(true)} className="po_doc_btn">
+            <i className="fa-solid fa-file-pdf" style={{ color: "#00a8e6" }}></i>
+            {titulo || "Ver Documento"}
+          </button>
+        );
+      case "imagen":
+        return (
+          <button type="button" onClick={() => setAbierto(true)} className="po_img_btn">
+            <i className="fa-solid fa-image" style={{ color: "#7000FF" }}></i>
+            {titulo || "Ver Imagen"}
+          </button>
+        );
+      default:
+        return (
+          <button type="button" onClick={() => setAbierto(true)} className="po_normal_btn">
+            <span><i className="fa-solid fa-eye" style={{ color: "#FF5C69", marginRight: "10px" }}></i> {titulo || "Ver contenido oculto"}</span>
+            <i className="fa-solid fa-chevron-right" style={{ opacity: 0.5 }}></i>
+          </button>
+        );
+    }
+  };
+
+  const videoId = tipo === "youtube" ? obtenerYoutubeId(src) : "";
 
   return (
-    <div style={{ margin: "25px 0" }}>
-      {/* Botón que parece un banner */}
-      <button 
-        onClick={() => setAbierto(true)}
-        style={{
-          width: "100%",
-          background: "linear-gradient(135deg, rgba(255, 92, 105, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)",
-          border: "1px solid rgba(255, 92, 105, 0.3)",
-          borderRadius: "16px",
-          padding: "15px 20px",
-          color: "var(--tx)",
-          cursor: "pointer",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          fontWeight: "bold",
-          fontSize: "1rem",
-          transition: "all 0.3s ease",
-          boxShadow: "0 5px 15px rgba(0,0,0,0.05)"
-        }}
-      >
-        <span><i className="fa-solid fa-eye" style={{ color: "#FF5C69", marginRight: "10px" }}></i> {titulo || "Ver contenido oculto"}</span>
-        <i className="fa-solid fa-chevron-right" style={{ opacity: 0.5 }}></i>
-      </button>
+    <span className={tipo === "normal" ? "po_modal_wrap" : "po_modal_wrap_inline"}>
+      {renderTrigger()}
 
-      {/* Modal flotante */}
-      {abierto && (
-        <div style={{
-          position: "fixed",
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: "rgba(0,0,0,0.7)",
-          backdropFilter: "blur(5px)",
-          WebkitBackdropFilter: "blur(5px)",
-          zIndex: 9999,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "20px"
-        }} onClick={() => setAbierto(false)}>
-          <div style={{
-            background: "var(--bg)",
-            border: "1px solid var(--brd)",
-            borderRadius: "24px",
-            padding: "30px",
-            maxWidth: "500px",
-            width: "100%",
-            boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
-            position: "relative",
-            animation: "so_pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
-          }} onClick={e => e.stopPropagation()}>
+      {abierto && montado && createPortal(
+        <div className="po_modal_overlay" onClick={() => setAbierto(false)}>
+          <div className={isMedia ? "po_modal_dialog_media" : "po_modal_dialog"} onClick={e => e.stopPropagation()}>
             
-            <button 
-              onClick={() => setAbierto(false)}
-              style={{
-                position: "absolute",
-                top: "15px", right: "20px",
-                background: "transparent",
-                border: "none",
-                color: "var(--tx)",
-                fontSize: "1.5rem",
-                cursor: "pointer",
-                opacity: 0.5
-              }}
-            >
+            <button onClick={() => setAbierto(false)} className={isMedia ? "po_modal_close_media" : "po_modal_close"}>
               <i className="fa-solid fa-xmark"></i>
             </button>
 
-            <h3 style={{ marginTop: 0, marginBottom: "20px", color: "var(--tx)", borderBottom: "1px solid var(--brd)", paddingBottom: "10px" }}>
-              {titulo}
-            </h3>
-            
-            <div style={{ color: "var(--tx)", lineHeight: "1.6", opacity: 0.9 }}>
-              {children}
-            </div>
-            
-            <button 
-              onClick={() => setAbierto(false)}
-              style={{
-                width: "100%",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid var(--brd)",
-                borderRadius: "12px",
-                padding: "12px",
-                color: "var(--tx)",
-                marginTop: "25px",
-                cursor: "pointer",
-                fontWeight: "bold"
-              }}
-            >
-              Cerrar
-            </button>
+            {tipo === "youtube" && videoId && (
+              <iframe 
+                width="100%" 
+                height="100%" 
+                src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                title={titulo}
+                style={{ border: "none" }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              />
+            )}
+
+            {tipo === "video" && src && (
+              <video src={src} controls autoPlay style={{ width: "100%", height: "100%", border: "none", display: "block" }} />
+            )}
+
+            {!isMedia && (
+              <>
+                <h3 style={{ marginTop: 0, marginBottom: "20px", color: "var(--tx)", borderBottom: "1px solid var(--brd)", paddingBottom: "10px" }}>
+                  {titulo}
+                </h3>
+                <div style={{ color: "var(--tx)", lineHeight: "1.6", opacity: 0.9 }}>
+                  {children}
+                </div>
+                <button onClick={() => setAbierto(false)} className="po_modal_btn_close">
+                  Cerrar
+                </button>
+              </>
+            )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </span>
   );
 }

@@ -528,14 +528,20 @@ export default function NuevoBlog() {
                                     onMouseLeave={() => setHoveredField(null)}
                                     placeholder="mi_historia_de_amor (Mínimo: 11, Máximo: 32 caracteres)"
                                     maxLength={32}
+                                    disabled={!!editSlug}
                                     required
                                 />
                             </div>
                         </Witip>
                         <div className="nu_slug_status">
-                            {slugStatus === "libre" && (
+                            {slugStatus === "libre" && !editSlug && (
                                 <span className="libre">
                                     <i className="fa-solid fa-circle-check"></i> ¡Enlace disponible y listo para brillar! ✨
+                                </span>
+                            )}
+                            {!!editSlug && (
+                                <span className="libre" style={{ color: "var(--error)" }}>
+                                    <i className="fa-solid fa-circle-info"></i> Modo Edicion. El enlace está bloqueado para proteger la indexación SEO.
                                 </span>
                             )}
                         </div>

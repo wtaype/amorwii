@@ -682,6 +682,216 @@
   color: var(--mco);
 }
 
+
+/* ── 21. SISTEMA DE MODALES PRO UNIVERSALES ──────── */
+.po_modal_wrap {
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+.po_modal_wrap_inline {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Botón de YouTube / Video Pro */
+.po_yt_btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--bg);
+  border: 1px solid rgba(254, 1, 73, 0.3);
+  border-radius: 12px;
+  color: var(--tx);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.po_yt_btn:hover {
+  border-color: #fe0149;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(254, 1, 73, 0.15);
+}
+
+/* Botón de Documentos */
+.po_doc_btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, rgba(0, 168, 230, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(0, 168, 230, 0.3);
+  border-radius: 12px;
+  color: var(--tx);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.po_doc_btn:hover {
+  border-color: #00a8e6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 168, 230, 0.15);
+}
+
+/* Botón de Imagen */
+.po_img_btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, rgba(112, 0, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(112, 0, 255, 0.3);
+  border-radius: 12px;
+  color: var(--tx);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.po_img_btn:hover {
+  border-color: #7000FF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(112, 0, 255, 0.15);
+}
+
+/* Botón Normal Banner */
+.po_normal_btn {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(255, 92, 105, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 92, 105, 0.3);
+  border-radius: 16px;
+  padding: 15px 20px;
+  color: var(--tx);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+}
+.po_normal_btn:hover {
+  border-color: rgba(255, 92, 105, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 92, 105, 0.1);
+}
+
+/* Overlay Glassmorphic (Fondo suave de cristal) */
+.po_modal_overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* Diálogo de Texto Estándar */
+.po_modal_dialog {
+  background: var(--bg);
+  border: 1px solid var(--brd);
+  border-radius: 24px;
+  padding: 32px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+}
+
+/* Diálogo de Video Premium Amplio (Estilo Divi 2026) */
+.po_modal_dialog_media {
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 0;
+  max-width: 1000px; /* Sensación premium de cine */
+  width: 92%;
+  aspect-ratio: 16/9;
+  box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.7);
+  position: relative;
+  overflow: hidden;
+  animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+}
+
+/* Botón X Estándar */
+.po_modal_close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: var(--tx);
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.po_modal_close:hover {
+  opacity: 0.9;
+}
+
+/* Botón X Flotante en Video */
+.po_modal_close_media {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: background 0.2s, transform 0.2s;
+}
+.po_modal_close_media:hover {
+  background: rgba(0, 0, 0, 0.85);
+  transform: scale(1.05);
+}
+
+/* Botón Cerrar Inferior */
+.po_modal_btn_close {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--brd);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--tx);
+  margin-top: 24px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+.po_modal_btn_close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--mco);
+}
+
+@keyframes modalPop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 /* ── 17. RESPONSIVE ──────────────────────────────── */
 @media (max-width: 1100px) { .po_wrap { padding: 0 2vh; } }
 
