@@ -13,6 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Preconexión DNS y TCP anticipada al CDN de FontAwesome */}
         <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+        <link rel="preconnect" href="https://i.postimg.cc" />
 
         {/* Carga asíncrona no bloqueante de FontAwesome CSS */}
         <link

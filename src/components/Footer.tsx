@@ -64,7 +64,7 @@ export default function Footer() {
 
       {/* BANNER COOKIES */}
       {mounted && (!showCookies && localStorage.getItem('cookies') ? null : (
-        <div className={`cookiess ${showCookies ? 'cookiess_show' : ''}`} role="dialog" aria-live="polite">
+        <div className={`cookiess ${showCookies ? 'cookiess_show' : ''}`} role="dialog" aria-live="polite" aria-label="Consentimiento de Cookies">
           <p className="cookiess_txt">
             <i className="fas fa-cookie-bite cookiess_ico"></i>
             Usamos cookies para mejorar tu experiencia y mostrarte anuncios relevantes
