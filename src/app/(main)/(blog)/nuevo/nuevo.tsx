@@ -102,7 +102,7 @@ export default function NuevoBlog() {
         async function cargarPost() {
             if (!editSlug) return;
             if (loading) return; // Esperar a que la sesión esté completamente hidratada
-            
+
             setCargandoDatos(true);
             try {
                 const { data, error } = await supabase
