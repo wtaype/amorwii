@@ -92,17 +92,17 @@ function Item({ item, pathname, onClick, perfil, signOut }: { item: any; pathnam
     </button>
   );
   if (item.isPerfil) return (
-    <Link href="/perfil" className={`nv_item${pathname === "/perfil" ? " active" : ""}`}>
+    <Link href="/perfil" className={`nv_item${pathname === "/perfil" ? " active" : ""}`} onClick={onClick}>
       <img src={perfil?.avatar || "/smile.avif"} alt={perfil?.nombre || "Perfil"} />
       <span>{perfil?.nombre?.split(' ')[0] || "Perfil"}</span>
     </Link>
   );
   if (item.isSalir) return (
-    <button className="nv_item bt_salir" onClick={signOut}><i className="fa-solid fa-sign-out-alt" /> <span>Salir</span></button>
+    <button className="nv_item bt_salir" onClick={() => { signOut?.(); onClick?.(); }}><i className="fa-solid fa-sign-out-alt" /> <span>Salir</span></button>
   );
   const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
   return (
-    <Link href={item.href} className={`nv_item${active ? " active" : ""}`}>
+    <Link href={item.href} className={`nv_item${active ? " active" : ""}`} onClick={onClick}>
       <i className={`fas ${item.ico}`} /> <span>{item.txt}</span>
     </Link>
   );
@@ -114,6 +114,11 @@ export default function Header({ perfilInicial = null }: { perfilInicial?: Smile
   const pathname = usePathname();
   const [modalTxt, setModalTxt] = useState<string | null>(null);
   const [perfil, setPerfil] = useState<SmileNuevo | null>(perfilInicial);
+
+  // Cierra el drawer móvil y limpia el overflow:hidden en cambios de ruta
+  useEffect(() => {
+    document.body.classList.remove("movil_open");
+  }, [pathname]);
 
   // Solo escucha cambios de auth en tiempo real — no consulta al cargar
   useEffect(() => {

@@ -230,6 +230,106 @@
 .ac_cta_inner p { font-size: var(--fz_m2); opacity: 0.8; margin-bottom: 5vh; }
 .ac_cta_btns { display: flex; justify-content: center; gap: 2vh; }
 
+/* ── ESTADÍSTICAS DEL HERO ACERCA ── */
+.ac_hero_stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2vh;
+  margin-top: 3vh;
+  margin-bottom: 2vh;
+}
+
+.ac_stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8vh;
+  padding: 1vh 2vh;
+  background: var(--wb);
+  border: 1px solid var(--brd);
+  border-radius: 4vh;
+  font-size: var(--fz_m1);
+  font-weight: 600;
+  color: var(--tx2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+}
+
+.ac_stat:hover {
+  border-color: var(--mco);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 107, 138, 0.08);
+}
+
+.ac_stat i {
+  font-size: var(--fz_m2);
+}
+
+.ac_stat strong {
+  font-weight: 800;
+  color: var(--tx1);
+  margin-left: 0.3vh;
+}
+
+/* Botones Hero y CTA */
+.ac_hero_btns, .ac_cta_btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2vh;
+  margin-top: 4vh;
+}
+
+/* ── BANDA DE CONTADORES ACERCA ── */
+.ac_counter_band {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--wb);
+  border-top: 1px solid var(--brd);
+  border-bottom: 1px solid var(--brd);
+  padding: 4vh 5vw;
+  gap: 4vw;
+  width: 100%;
+}
+
+.ac_counter_item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+}
+
+.ac_counter_item span {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+  color: var(--mco);
+  font-family: var(--ff_O);
+  line-height: 1.1;
+}
+
+.ac_counter_item .ac_counter_num {
+  display: inline;
+}
+
+.ac_counter_item p {
+  font-size: var(--fz_s3);
+  color: var(--tx3);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.8vh;
+  margin-bottom: 0;
+}
+
+.ac_counter_sep {
+  width: 1px;
+  height: 6vh;
+  background: var(--brd);
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 1024px) {
   .dc_bento { grid-template-columns: repeat(2, 1fr); }
@@ -246,6 +346,27 @@
   .dc_bento { grid-template-columns: 1fr; }
   .dc_c_large, .dc_c_full { grid-column: 1 / -1; }
   .dc_c_full { flex-direction: column; text-align: center; }
-  .ac_hero_btns, .ac_cta_btns { flex-direction: column; }
-  .ac_btn_p, .ac_btn_s { justify-content: center; }
+  
+  .ac_hero_btns, .ac_cta_btns { flex-direction: column; gap: 1.5vh; }
+  .ac_btn_p, .ac_btn_s { justify-content: center; width: 100%; }
+
+  .ac_hero_stats {
+    gap: 1.2vh;
+  }
+  .ac_stat {
+    padding: 0.8vh 1.5vh;
+    font-size: var(--fz_s3);
+  }
+  .ac_counter_band {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3vh 2vw;
+    padding: 3vh 5vw;
+  }
+  .ac_counter_sep {
+    display: none;
+  }
+  .ac_counter_item span {
+    font-size: 2.2rem;
+  }
 }

@@ -185,10 +185,23 @@
       .ben_grid { grid-template-columns: repeat(3, 1fr); }
     }
 
+    /* Centrado y ajuste compacto del hero en móviles y tablets */
+    @media (max-width: 959px) {
+      .hero { gap: 2.5vh; }
+      .hero_txt { align-items: center; text-align: center; }
+      .hero_badge { margin-left: auto; margin-right: auto; margin-bottom: 1.2vh; }
+      .hero h1 { margin-bottom: 1vh; line-height: 1.25; }
+      .hero_roles { height: 0.8vh !important; margin-bottom: 1.2vh; }
+      .hero_sub { text-align: center; margin-bottom: 2.2vh; }
+      .hero_btns { justify-content: center; margin-bottom: 2.5vh; }
+    }
+
     @media (max-width: 480px) {
-      section { padding: 6vh 0; }
+      section { padding: 2vh 0; }
       .hero h1 { font-size: 2.1rem; }
-      .hstat_n { font-size: 1.8rem; }
+      .hstat_n { font-size: 1.5rem; }
+      .hstat_l { font-size: 0.65rem; }
+      .btn_pri, .btn_sec { font-size: 0.9rem; padding: 1.2vh 2vh; }
       .cta_final h2 { font-size: 1.6rem; }
       .cta_tags { gap: 1vh; }
       .cta_tags span { font-size: var(--fz_s4); padding: 0.6vh 1.2vh; }

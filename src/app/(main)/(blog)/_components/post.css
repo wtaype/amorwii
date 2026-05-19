@@ -924,4 +924,15 @@
   .po_pn_box { grid-template-columns: 1fr; gap: 1vh; }
   .po_pn_card.pn_next { text-align: left; justify-content: flex-start; flex-direction: row-reverse; }
   .po_pn_card.pn_next .po_pn_lb { justify-content: flex-start; flex-direction: row-reverse; }
+
+  /* Solución 7: Video modal ampliado en móviles */
+  .po_modal_overlay {
+    padding: 12px;
+  }
+  .po_modal_dialog_media {
+    width: 100%;
+    aspect-ratio: 16/9;
+    min-height: 210px;
+    border-radius: 16px;
+  }
 }
