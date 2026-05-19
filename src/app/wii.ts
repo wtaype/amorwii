@@ -11,15 +11,15 @@ export const lanzamiento = 2026;
 export const by = 'Wilder Taype';
 export const linkme = 'https://wtaype.github.io/';
 export const ipdev = process.env.NEXT_PUBLIC_MIDEV;
-export const version = "v28";
+export const version = "v29";
 
 /** Actualizar main luego esto, pero si es mucho, solo esto. (1)
-git tag v28 -m "Version v28" ; git push origin v28  
+git tag v29 -m "Version v29" ; git push origin v29  
 
 //  ACTUALIZACIÓN PRINCIPAL ONE DEV [START] (2)
-git add . ; git commit -m "Actualizacion Principal v28.10.10" ; git push origin main
+git add . ; git commit -m "Actualizacion Principal v29.10.10" ; git push origin main
 
 // En caso de emergencia, para actualizar el Tag existente. (3)
-git tag -d v28 ; git tag v28 -m "Version v28 actualizada" ; git push origin v28 --force
+git tag -d v29 ; git tag v29 -m "Version v29 actualizada" ; git push origin v29 --force
 
  ACTUALIZACION TAG[END]  */
