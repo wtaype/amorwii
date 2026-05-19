@@ -3,10 +3,9 @@ import Showi from "@/components/Showi";
 import { app } from "@/app/wii";
 import "../acercas.css";
 
-export const metadata = {
-  title: `Política de Cookies | ${app}`,
-  description: `Te explicamos qué cookies usamos en ${app} y cómo puedes gestionarlas.`,
-};
+import { seopages } from "@/app/seopages";
+
+export const metadata = seopages.cookies;
 
 export default function CookiesPage() {
   const anio = new Date().getFullYear();

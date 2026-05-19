@@ -3,10 +3,9 @@ import "./blog.css";
 import { traerPosts } from "../_lib/blogData";
 import BlogFeed from "../_components/BlogFeed";
 
-export const metadata = {
-  title: "Blog de Historias | AmorWii",
-  description: "Descubre historias inspiradoras sobre amor, fe y esperanza en nuestro blog.",
-};
+import { seopages } from "@/app/seopages";
+
+export const metadata = seopages.blog;
 
 /**
  * PÁGINA PRINCIPAL DEL BLOG (Versión Pro)

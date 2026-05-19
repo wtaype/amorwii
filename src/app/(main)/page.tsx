@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { app } from "@/app/wii";
+import * as wii from "@/app/wii";
 import Showi from "@/components/Showi";
 import AnimarRoles from "@/components/AnimarRoles";
 import Contadores from "@/components/Contadores";
@@ -93,6 +94,25 @@ async function SeccionBlogInicio() {
 }
 
 export default function Home() {
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": wii.app,
+    "url": wii.linkweb,
+    "description": wii.descri,
+    "inLanguage": "es",
+    "author": {
+      "@type": "Person",
+      "name": wii.by,
+      "url": wii.linkme
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": `${wii.linkweb}/blog?q={search_term_string}`,
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
     <div className="inicio">
 
@@ -289,6 +309,11 @@ export default function Home() {
         </Showi>
       </section>
 
+      {/* Inyección dinámica del esquema de Google Sitelinks Searchbox */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
     </div>
   );
 }

@@ -4,10 +4,9 @@ import Showi from "@/components/Showi";
 import { app, version } from "@/app/wii";
 import "../acercas.css";
 
-export const metadata = {
-  title: `Descubre ${app} | Cómo funciona la magia`,
-  description: `Explora todas las funciones de ${app} y aprende cómo crear el detalle perfecto.`,
-};
+import { seopages } from "@/app/seopages";
+
+export const metadata = seopages.descubre;
 
 export default function DescubrePage() {
   return (

@@ -1,13 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import Showi from "@/components/Showi";
-import { app } from "@/app/wii";
+import { seopages } from "@/app/seopages";
 import "../acercas.css";
 
-export const metadata = {
-  title: `Contacto | ${app}`,
-  description: `¿Tienes dudas o sugerencias? Escríbenos y conecta con el equipo de ${app}.`,
-};
+export const metadata = seopages.contacto;
 
 export default function ContactoPage() {
   const INFO = [

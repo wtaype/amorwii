@@ -3,10 +3,9 @@ import Showi from "@/components/Showi";
 import { app, by } from "@/app/wii";
 import "../acercas.css";
 
-export const metadata = {
-  title: `Política de Privacidad | ${app}`,
-  description: `Conoce cómo protegemos tus datos y qué información recopilamos en ${app}.`,
-};
+import { seopages } from "@/app/seopages";
+
+export const metadata = seopages.privacidad;
 
 export default function PrivacidadPage() {
   const anio = new Date().getFullYear();

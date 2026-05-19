@@ -1,10 +1,7 @@
 import { Plantillas } from './plantillas';
-import { titulo, app } from '@/app/wii';
+import { seopages } from '@/app/seopages';
 
-export const metadata = {
-  title: `Plantillas | ${app}`,
-  description: `Elige una plantilla romántica en ${titulo}`,
-};
+export const metadata = seopages.plantillas;
 
 export default function PlantillasPage() {
   return <Plantillas />;

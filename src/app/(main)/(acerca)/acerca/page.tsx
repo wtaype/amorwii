@@ -4,10 +4,9 @@ import Showi from "@/components/Showi";
 import { app, version, by } from "@/app/wii";
 import "../acercas.css";
 
-export const metadata = {
-  title: `Acerca de ${app} | Conectando Corazones`,
-  description: `Conoce la historia de ${app}, la plataforma líder en mensajes de amor personalizados.`,
-};
+import { seopages } from "@/app/seopages";
+
+export const metadata = seopages.acerca;
 
 export default function AcercaPage() {
   const anio = new Date().getFullYear();

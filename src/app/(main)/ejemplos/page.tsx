@@ -1,10 +1,7 @@
 import { Ejemplos } from './ejemplos';
-import { titulo, app } from '@/app/wii';
+import { seopages } from '@/app/seopages';
 
-export const metadata = {
-  title: `Ejemplos de Amor | ${app}`,
-  description: `Inspiración y ejemplos de mensajes románticos en ${titulo}`,
-};
+export const metadata = seopages.ejemplos;
 
 export default function EjemplosPage() {
   return <Ejemplos />;

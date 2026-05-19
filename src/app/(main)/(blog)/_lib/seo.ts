@@ -45,7 +45,7 @@ export function generarMetaPost(post: Post) {
       url: url,
       siteName: "AmorWii",
       locale: "es_ES",
-      images: [{ 
+      images: [{
         url: image,
         width: 1200,
         height: 630,

@@ -3,10 +3,9 @@ import Showi from "@/components/Showi";
 import { app, by } from "@/app/wii";
 import "../acercas.css";
 
-export const metadata = {
-  title: `Términos y Condiciones | ${app}`,
-  description: `Consulta las reglas de uso de ${app} y nuestro compromiso con la transparencia.`,
-};
+import { seopages } from "@/app/seopages";
+
+export const metadata = seopages.terminos;
 
 export default function TerminosPage() {
   const anio = new Date().getFullYear();

@@ -37,10 +37,42 @@ const THEMES = [
 ];
 
 export const metadata: Metadata = {
-  title: "AmorWii | Mensajes de Amor Personalizados",
-  description: "Crea mensajes de amor personalizados para San Valentín, aniversarios y fechas especiales.",
+  metadataBase: new URL(wii.linkweb),
+  title: {
+    default: wii.titulo,
+    template: `%s | ${wii.app}`
+  },
+  description: wii.descri,
+  keywords: wii.keywii,
   icons: { icon: "/favicon.ico" },
-  robots: { index: true, follow: true }, // Sobreescribe el root (privado por defecto)
+  robots: { index: true, follow: true },
+  alternates: {
+    canonical: "./",
+  },
+  openGraph: {
+    title: wii.titulo,
+    description: wii.descri,
+    url: "./",
+    siteName: wii.app,
+    locale: "es_ES",
+    type: "website",
+    images: [{
+      url: "/poster.webp",
+      width: 1200,
+      height: 630,
+      alt: `${wii.app} — Comparte hermosos mensajes de amor`
+    }]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: wii.titulo,
+    description: wii.descri,
+    images: ["/poster.webp"],
+    creator: "@wilder.taype"
+  },
+  other: {
+    "google-adsense-account": "ca-pub-1362457560630815",
+  }
 };
 
 export const viewport: Viewport = {

@@ -3,10 +3,9 @@ import Showi from "@/components/Showi";
 import { app } from "@/app/wii";
 import "../acercas.css";
 
-export const metadata = {
-  title: `Feedback | ${app}`,
-  description: `Ayúdanos a mejorar ${app}. Envía tus sugerencias, ideas o reporta errores.`,
-};
+import { seopages } from "@/app/seopages";
+
+export const metadata = seopages.feedback;
 
 export default function FeedbackPage() {
   const CANALES = [
