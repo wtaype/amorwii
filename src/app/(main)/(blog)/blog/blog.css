@@ -162,15 +162,14 @@
   white-space: nowrap;
 }
 .bl_cat_btn i { color: var(--cc); font-size: var(--fz_m1); flex-shrink: 0; }
-.bl_cat_btn:hover { border-color: var(--cc); color: var(--cc); background: var(--wb); }
+.bl_cat_btn:hover {background: var(--wb); }
 .bl_cat_btn.active {
-  background: var(--cc);
-  border-color: var(--cc);
-  color: #fff;
+  background: var(--mco);
+  color: var(--txa);
   font-weight: 700;
   box-shadow: 0 3px 12px rgba(0,0,0,.15);
 }
-.bl_cat_btn.active i { color: #fff; }
+.bl_cat_btn.active i { color: var(--txa); }
 
 /* Derecha */
 .bl_bar_right { display: flex; align-items: center; gap: .5vh; }

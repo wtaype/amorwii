@@ -3,17 +3,18 @@
 
 // Tabla: smiles (usuarios)
 export type Smile = {
-  usuario: string;   // PK — username único
-  email: string;   // unique
+  id: string;        // uuid PK linked to auth.users(id)
+  usuario: string;   // username único
+  email: string;     // unique
   nombre: string;
   apellidos: string;
-  avatar: string;   // URL foto Google o vacío
+  avatar: string;    // URL foto Google o vacío
   bio: string;
   estado: "activo" | "pendiente";
   plan: "free" | "pro";
-  rol: "smile" | "admin";
-  segmento: string;   // "creador"
-  tema: string;   // "Oro|#FFC107"
+  rol: "creador" | "editor" | "gestor" | "admin";
+  segmento: "smile" | "empresa" | "negocios";
+  tema: string;      // "Oro|#FFC107"
   terminos: boolean;
   verificado: boolean;
   registradoPor: "google" | "correo";
@@ -22,7 +23,8 @@ export type Smile = {
   genero?: string;
   pais?: string;
   gustos?: string;
-  creado: string;   // timestamptz
+  creado: string;      // timestamptz
+  actualizado: string; // timestamptz
 };
 
 // Tabla: sorpresas (páginas personalizadas)
@@ -43,8 +45,8 @@ export type Sorpresa = {
   creado: string;   // timestamptz
 };
 
-// Datos para crear un nuevo Smile (sin 'creado' porque es auto)
-export type SmileNuevo = Omit<Smile, "creado">;
+// Datos para crear un nuevo Smile (sin 'creado' y 'actualizado' porque son auto)
+export type SmileNuevo = Omit<Smile, "creado" | "actualizado">;
 
 // Datos para crear una nueva Sorpresa (sin 'id' y 'creado')
 export type SorpresaNueva = Omit<Sorpresa, "id" | "creado">;

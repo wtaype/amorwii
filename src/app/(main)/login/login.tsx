@@ -12,7 +12,6 @@ import Witip from "@/components/Witip";
 
 // ── CONFIG ───────────────────────────────────────────────────────────────────
 export const LCFG = { modal: 'si', link: 'si', restablecer: 'si', login: 'si', registrar: 'si', google: 'si' };
-const irPagina = "crear"; // Página a la que redirige al entrar (sin slash)
 
 type Vista = "login" | "registrar" | "recuperar" | "completar";
 type TipData = { msg: string; tipo: "error" | "success" };
@@ -33,7 +32,7 @@ function Campo({ ico, tipo = "text", id, place, value, onChange, onBlur, tip, oj
 }
 
 // ── LOGIN COMPONENT ─────────────────────────────────────────────────────────
-export default function Login({ vistaInicial = "login", isModal = false, cfg = LCFG }: { vistaInicial?: Vista; isModal?: boolean; cfg?: typeof LCFG }) {
+export default function Login({ vistaInicial = "login", isModal = false, cfg = LCFG, onClose }: { vistaInicial?: Vista; isModal?: boolean; cfg?: typeof LCFG; onClose?: () => void }) {
     const router = useRouter();
     const [vista, setVista] = useState<Vista>(vistaInicial);
     const [cargando, setCargando] = useState(false);
@@ -82,21 +81,21 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
         if (u.length < 4) return;
         if (u.includes("@")) { setTip("regUsuario", "No puede contener @"); setUsuarioOk(false); return; }
         try {
-            const { data, error } = await supabase.from("smiles").select("usuario").eq("usuario", u).maybeSingle();
-            if (error && error.code !== "PGRST116") throw error;
-            if (data) { setTip("regUsuario", "Usuario no disponible <i class='fa-solid fa-times-circle'></i>"); setUsuarioOk(false); }
+            const { data: yaExiste, error } = await supabase.rpc("existe_usuario", { username_buscado: u });
+            if (error) throw error;
+            if (yaExiste) { setTip("regUsuario", "Usuario no disponible <i class='fa-solid fa-times-circle'></i>"); setUsuarioOk(false); }
             else { setTip("regUsuario", "Usuario disponible <i class='fa-solid fa-check-circle'></i>", "success"); setUsuarioOk(true); }
-        } catch (e) { setTip("regUsuario", "Usuario disponible <i class='fa-solid fa-check-circle'></i>", "success"); setUsuarioOk(true); }
+        } catch (e) { setTip("regUsuario", "Error al verificar usuario"); setUsuarioOk(false); }
     };
 
     const verificarEmail = async (e: string) => {
         const r = validar.email(e); if (r !== true) { setTip("regEmail", r); return; }
         try {
-            const { data, error } = await supabase.from("smiles").select("email").eq("email", e).maybeSingle();
-            if (error && error.code !== "PGRST116") throw error;
-            if (data) { setTip("regEmail", "Email ya registrado <i class='fa-solid fa-times-circle'></i>"); setEmailOk(false); }
+            const { data: yaExiste, error } = await supabase.rpc("existe_email", { email_buscado: e });
+            if (error) throw error;
+            if (yaExiste) { setTip("regEmail", "Email ya registrado <i class='fa-solid fa-times-circle'></i>"); setEmailOk(false); }
             else { setTip("regEmail", "Email disponible <i class='fa-solid fa-check-circle'></i>", "success"); setEmailOk(true); }
-        } catch (err) { setTip("regEmail", "Email disponible <i class='fa-solid fa-check-circle'></i>", "success"); setEmailOk(true); }
+        } catch (err) { setTip("regEmail", "Error al verificar email"); setEmailOk(false); }
     };
 
     const hacerLogin = async () => {
@@ -105,8 +104,9 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
         try {
             let em = sanEmail(email);
             if (!em.includes("@")) {
-                const { data } = await supabase.from("smiles").select("email").eq("usuario", em).maybeSingle();
-                if (!data) throw new Error("Usuario no encontrado"); em = data.email;
+                const { data: emailEncontrado, error: rpcError } = await supabase.rpc("obtener_email_por_usuario", { username_buscado: em });
+                if (rpcError || !emailEncontrado) throw new Error("Usuario no encontrado");
+                em = emailEncontrado;
             }
             const { error } = await supabase.auth.signInWithPassword({ email: em, password });
             if (error) throw error;
@@ -118,8 +118,27 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
     const entrar = (wi: any) => {
         Mensaje(`¡Bienvenido, ${wi?.nombre || "Smile"}! 💖`, "success");
         if (wi?.tema) localStorage.wiTema = wi.tema;
-        router.push("/" + irPagina);
-        if (isModal) router.refresh();
+        
+        // Redirección dinámica por roles con ruta absoluta (con slash)
+        let rutaDestino = "/solicitud";
+        const rol = wi?.rol?.toLowerCase();
+
+        if (rol === "creador") {
+            rutaDestino = "/crear";
+        } else if (rol === "editor") {
+            rutaDestino = "/nuevo";
+        } else if (rol === "gestor" || rol === "admin") {
+            rutaDestino = "/solicitud";
+        }
+
+        router.push(rutaDestino);
+
+        if (isModal) {
+            router.refresh();
+            setTimeout(() => {
+                if (onClose) onClose();
+            }, 1500);
+        }
     };
 
     const hacerRegistro = async () => {
@@ -131,11 +150,13 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
 
         setCargando(true); limpiarTips();
         try {
-            const { error: authError } = await supabase.auth.signUp({ email: sanEmail(regEmail), password: regPassword });
-            if (authError) throw authError;
+            const { data: authData, error: authError } = await supabase.auth.signUp({ email: sanEmail(regEmail), password: regPassword });
+            if (authError || !authData.user) throw authError || new Error("Error al registrar usuario");
+
             const nuevoSmile: SmileNuevo = {
+                id: authData.user.id,
                 usuario: sanUser(regUsuario), email: sanEmail(regEmail), nombre: sanName(regNombre).trim(), apellidos: sanName(regApellidos).trim(),
-                avatar: "", bio: "", estado: "activo", plan: "free", rol: "smile", segmento: "creador",
+                avatar: "", bio: "", estado: "activo", plan: "free", rol: "creador", segmento: "smile",
                 tema: localStorage.getItem("wiTema") || "Dulce|#FF5C69", terminos: true, verificado: false, registradoPor: "correo",
             };
             const { error: dbError } = await supabase.from("smiles").insert(nuevoSmile);
@@ -155,8 +176,9 @@ export default function Login({ vistaInicial = "login", isModal = false, cfg = L
             if (!userData.user) throw new Error("No hay sesión activa");
 
             const nuevoSmile: SmileNuevo = {
+                id: userData.user.id,
                 usuario: sanUser(regUsuario), email: sanEmail(regEmail), nombre: sanName(regNombre).trim(), apellidos: sanName(regApellidos).trim(),
-                avatar: userData.user.user_metadata?.avatar_url || "", bio: "", estado: "activo", plan: "free", rol: "smile", segmento: "creador",
+                avatar: userData.user.user_metadata?.avatar_url || "", bio: "", estado: "activo", plan: "free", rol: "creador", segmento: "smile",
                 tema: localStorage.getItem("wiTema") || "Dulce|#FF5C69", terminos: true, verificado: false, registradoPor: "google",
             };
 

@@ -39,6 +39,7 @@ export function TarjetaBlog({ post }: { post: Post }) {
           <div className="bl_card_meta">
             <span><i className="fa-solid fa-calendar-day"></i> {haceTiempo(post.creado)}</span>
             <span><i className="fa-solid fa-eye"></i> {post.vistas || 0}</span>
+            <span><i className="fa-solid fa-heart"></i> {post.likes || 0}</span>
           </div>
           <div className="bl_card_leer">
             Leer más <i className="fa-solid fa-arrow-right"></i>

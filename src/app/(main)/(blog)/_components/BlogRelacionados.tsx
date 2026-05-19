@@ -16,7 +16,7 @@ export default async function BlogRelacionados({ slugActual, categoria }: Relaci
   // Buscamos 4 historias de la misma categoría, excluyendo la actual
   const { data: posts, error } = await supabase
     .from("blog")
-    .select('id, slug, titulo, descripcion, categoria, tags, imagen, "imagenTop", "metaSEO", vistas, likes, pin, activo, autor, "userId", "lecturaTM", creado, actualizado')
+    .select('id, "userId", usuario, slug, autor, email, likes, vistas, titulo, descripcion, categoria, tags, imagen, "imagenTop", "metaSEO", "lecturaTM", activo, pin, creado, actualizado')
     .eq("categoria", categoria)
     .eq("activo", true)
     .neq("slug", slugActual)

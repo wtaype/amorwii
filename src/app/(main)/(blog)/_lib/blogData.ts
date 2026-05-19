@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 
 /**
  * INTERFAZ POST
@@ -10,7 +11,6 @@ export interface Post {
   slug: string;
   titulo: string;
   descripcion: string;
-  contenido?: string;      // HTML renderizado (Opcional en listas)
   contenidoMD?: string;    // Markdown fuente (Opcional en listas)
   categoria: string;
   tags: string[];
@@ -23,6 +23,8 @@ export interface Post {
   activo: boolean;
   autor: string;
   userId: string | null;
+  email: string | null;
+  usuario: string | null;
   lecturaTM: string | null;
   creado: string;
   actualizado: string;
@@ -37,7 +39,7 @@ export const traerPosts = cache(async () => {
   try {
     const { data, error } = await supabase
       .from('blog')
-      .select('id, slug, titulo, descripcion, categoria, tags, imagen, imagenTop, metaSEO, vistas, likes, pin, activo, autor, "userId", "lecturaTM", creado, actualizado')
+      .select('id, "userId", usuario, slug, autor, email, likes, vistas, titulo, descripcion, categoria, tags, imagen, "imagenTop", "metaSEO", "lecturaTM", activo, pin, creado, actualizado')
       .eq('activo', true)
       .order('creado', { ascending: false });
 
@@ -53,6 +55,20 @@ export const traerPosts = cache(async () => {
 });
 
 /**
+ * TRAER POSTS CON CACHÉ DE BORDE (Next.js unstable_cache)
+ * Almacena el listado en la caché de borde para una respuesta instantánea de 0ms.
+ * Revalida de forma automática por tag 'blog' o cada 1 hora.
+ */
+export const traerPostsConCache = unstable_cache(
+  async () => traerPosts(),
+  ["blog-posts-list"],
+  {
+    revalidate: 3600,
+    tags: ["blog"],
+  }
+);
+
+/**
  * TRAER POST POR SLUG (Detalle Completo)
  * Trae TODO incluyendo el contenido HTML.
  * EXCLUYE: buscador tsvector.
@@ -61,7 +77,7 @@ export const traerPost = cache(async (slug: string) => {
   try {
     const { data, error } = await supabase
       .from('blog')
-      .select('id, slug, titulo, descripcion, contenido, "contenidoMD", categoria, tags, imagen, "imagenTop", "metaSEO", vistas, likes, pin, activo, autor, "userId", "lecturaTM", creado, actualizado')
+      .select('id, "userId", usuario, slug, autor, email, likes, vistas, titulo, descripcion, "contenidoMD", categoria, tags, imagen, "imagenTop", "metaSEO", "lecturaTM", activo, pin, creado, actualizado')
       .eq('slug', slug)
       .maybeSingle();
 

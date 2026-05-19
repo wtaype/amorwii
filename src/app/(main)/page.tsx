@@ -4,6 +4,10 @@ import { app } from "@/app/wii";
 import Showi from "@/components/Showi";
 import AnimarRoles from "@/components/AnimarRoles";
 import Contadores from "@/components/Contadores";
+import { Suspense } from "react";
+import { traerPostsConCache } from "./(blog)/_lib/blogData";
+import { TarjetaBlog, EsqueletoBlog } from "./(blog)/blog/blog";
+import "./(blog)/blog/blog.css";
 import "./inicio.css";
 
 const ROLES = ['Mensajes de Amor 💕', 'San Valentín 💌', 'Aniversarios 🥂', 'Declaraciones ❤️', 'Cartas de Amor ✉️'];
@@ -51,6 +55,42 @@ const BENEFICIOS = [
   { e: '⚡', tit: 'Sin registro obligatorio vs. Formularios', desc: 'Crea y comparte en menos de 60 segundos. Sin email, sin contraseña, sin rodeos.' },
   { e: '🎨', tit: 'Plantillas únicas vs. Genéricas', desc: 'Nuestros diseños son exclusivos y temáticos. Nada de fondos blancos aburridos con texto negro.' },
 ];
+
+/**
+ * COMPONENTE FALLBACK DE SUSPENSE (Esqueleto del Blog para Inicio)
+ * Muestra 4 tarjetas de esqueleto animadas para un balance visual perfecto.
+ */
+function EsqueletoBlogInicioFallback() {
+  return (
+    <div className="bl_grid" style={{ marginTop: "4vh" }}>
+      {Array(4).fill(0).map((_, i) => (
+        <EsqueletoBlog key={i} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * SECCIÓN DE BLOG INICIO (Componente Servidor Asíncrono)
+ * Realiza el fetch de posts de forma ultra-rápida desde la caché de borde (0ms),
+ * toma los primeros 16 y los renderiza de forma 100% estática para SEO/AdSense.
+ */
+async function SeccionBlogInicio() {
+  const posts = await traerPostsConCache();
+  const postsInicio = posts.slice(0, 16);
+
+  if (!postsInicio || postsInicio.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="bl_grid" style={{ marginTop: "4vh" }}>
+      {postsInicio.map((post) => (
+        <TarjetaBlog key={post.id} post={post} />
+      ))}
+    </div>
+  );
+}
 
 export default function Home() {
   return (
@@ -117,6 +157,26 @@ export default function Home() {
         </div>
         <div className="sec_cta">
           <Link href="/ejemplos" className="btn_sec wi_nav"><i className="fas fa-th-large"></i><span>Ver Todos los Ejemplos</span></Link>
+        </div>
+      </section>
+
+      {/* ── HISTORIAS QUE INSPIRAN (BLOG) ── */}
+      <section className="sec_ej" id="blog-posts">
+        <div className="sec_head">
+          <h2><i className="fas fa-feather-pointed"></i> Historias que inspiran</h2>
+          <div className="sec_line"></div>
+        </div>
+        <p className="sec_desc">Reflexiones, tips de amor y palabras que tocan el corazón 🕊️</p>
+        
+        <Suspense fallback={<EsqueletoBlogInicioFallback />}>
+          <SeccionBlogInicio />
+        </Suspense>
+
+        <div className="sec_cta" style={{ marginTop: "4vh" }}>
+          <Link href="/blog" className="btn_sec wi_nav">
+            <i className="fas fa-arrow-right"></i>
+            <span>Ver todas las historias</span>
+          </Link>
         </div>
       </section>
 

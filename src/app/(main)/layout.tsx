@@ -11,6 +11,7 @@ import Notificacion from "@/components/Notificacion";
 import { createSupabaseServer } from "@/lib/supabaseServer";
 import type { SmileNuevo } from "@/lib/tipos";
 import * as wii from "@/app/wii";
+import { AuthProvider } from "@/lib/auth";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -59,13 +60,15 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   } catch { /* sin sesión activa */ }
 
   return (
-    <div className={`${poppins.variable} ${outfit.variable}`}>
-      <Mensaje />
-      <Notificacion />
-      <Header perfilInicial={perfilInicial} />
-      <main id="wimain">{children}</main>
-      <Footer />
-      <Witema themes={THEMES} />
-    </div>
+    <AuthProvider>
+      <div className={`${poppins.variable} ${outfit.variable}`}>
+        <Mensaje />
+        <Notificacion />
+        <Header perfilInicial={perfilInicial} />
+        <main id="wimain">{children}</main>
+        <Footer />
+        <Witema themes={THEMES} />
+      </div>
+    </AuthProvider>
   );
 }

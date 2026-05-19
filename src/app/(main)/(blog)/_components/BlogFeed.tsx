@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Post } from "../_lib/blogData";
 import { TarjetaBlog } from "../blog/blog";
 
@@ -15,6 +15,12 @@ interface BlogFeedProps {
 export default function BlogFeed({ initialPosts }: BlogFeedProps) {
   const [busqueda, setBusqueda] = useState("");
   const [catActiva, setCatActiva] = useState("Todas");
+  const [limiteVisible, setLimiteVisible] = useState(16);
+
+  // Reiniciar el límite de visibilidad al realizar búsquedas o cambiar de categoría
+  useEffect(() => {
+    setLimiteVisible(16);
+  }, [busqueda, catActiva]);
 
   // Obtener categorías únicas de los posts
   const categorias = useMemo(() => {
@@ -31,6 +37,17 @@ export default function BlogFeed({ initialPosts }: BlogFeedProps) {
       return cumpleCat && cumpleBusq;
     });
   }, [initialPosts, busqueda, catActiva]);
+
+  // Paginación en cliente: slice de posts visibles
+  const postsVisibles = useMemo(() => {
+    return postsFiltrados.slice(0, limiteVisible);
+  }, [postsFiltrados, limiteVisible]);
+
+  const tieneMas = postsFiltrados.length > limiteVisible;
+
+  const cargarMas = () => {
+    setLimiteVisible((prev) => prev + 8);
+  };
 
   return (
     <>
@@ -78,8 +95,8 @@ export default function BlogFeed({ initialPosts }: BlogFeedProps) {
       </div>
 
       <main className="bl_grid">
-        {postsFiltrados.length > 0 ? (
-          postsFiltrados.map((post) => (
+        {postsVisibles.length > 0 ? (
+          postsVisibles.map((post) => (
             <TarjetaBlog key={post.id} post={post} />
           ))
         ) : (
@@ -90,6 +107,14 @@ export default function BlogFeed({ initialPosts }: BlogFeedProps) {
           </div>
         )}
       </main>
+
+      {tieneMas && (
+        <div className="bl_mas_wrap">
+          <button className="bl_mas_btn" onClick={cargarMas}>
+            <i className="fa-solid fa-plus"></i> Ver más historias
+          </button>
+        </div>
+      )}
     </>
   );
 }

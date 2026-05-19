@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { Mensaje } from "@/components/Mensaje";
 import MarkdownPro from "../_components/MarkdownPro";
 import Witip from "@/components/Witip";
+import { useAuth } from "@/lib/auth";
 import "./nuevo.css";
 
 // Hook de persistencia "PRO" compatible con Next.js (Hydration-Safe)
@@ -60,6 +61,7 @@ function getContenidoStats(mdText: string) {
 export default function NuevoBlog() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { user, perfil, loading } = useAuth();
 
     // Detectar si estamos en modo edición
     const editSlug = searchParams.get("edit");
@@ -99,6 +101,8 @@ export default function NuevoBlog() {
     useEffect(() => {
         async function cargarPost() {
             if (!editSlug) return;
+            if (loading) return; // Esperar a que la sesión esté completamente hidratada
+            
             setCargandoDatos(true);
             try {
                 const { data, error } = await supabase
@@ -110,6 +114,16 @@ export default function NuevoBlog() {
                 if (error) throw error;
 
                 if (data) {
+                    // VERIFICACIÓN DOBLE SEGURO DE PROPIEDAD
+                    // El usuario debe ser el autor legítimo (por ID o email) o tener rol administrativo (gestor/admin)
+                    const esAdminOGestor = perfil?.rol === "admin" || perfil?.rol === "gestor";
+                    const esDuenio = user?.id === data.userId || user?.email === data.email;
+                    if (!esAdminOGestor && !esDuenio) {
+                        Mensaje("No tienes permisos para editar esta historia. ⚠️", "error");
+                        router.push("/editor/bienvenido");
+                        return;
+                    }
+
                     setForm({
                         titulo: data.titulo || "",
                         slug: data.slug || "",
@@ -134,7 +148,7 @@ export default function NuevoBlog() {
             }
         }
         cargarPost();
-    }, [editSlug]);
+    }, [editSlug, loading, user, perfil]);
 
     // Validar disponibilidad del slug en tiempo real con debounce y auto-limpieza
     useEffect(() => {
@@ -353,12 +367,12 @@ export default function NuevoBlog() {
 
         setCargando(true);
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-
             const metaSEO = {
                 keywords: form.keywords,
                 alt: form.titulo
             };
+
+            const autorNombre = perfil ? perfil.nombre : (user?.user_metadata?.nombre || "Autor");
 
             const datosPost = {
                 titulo: form.titulo,
@@ -372,8 +386,10 @@ export default function NuevoBlog() {
                 pin: form.pin,
                 metaSEO: metaSEO,
                 tags,
-                autor: user?.user_metadata?.nombre || "Admin",
-                userId: user?.id,
+                autor: autorNombre,
+                userId: user?.id || null,
+                email: perfil?.email || user?.email || "",
+                usuario: perfil?.usuario || "",
                 lecturaTM: `${Math.max(1, Math.ceil(form.contenidoMD.split(/\s+/).length / 200))} min`,
                 actualizado: new Date().toISOString()
             };
@@ -386,6 +402,8 @@ export default function NuevoBlog() {
                     .eq("slug", editSlug);
 
                 if (error) throw error;
+                // Revalidar caché del servidor al instante
+                await fetch("/api/revalidate?path=/").catch(err => console.warn("Error revalidando:", err));
                 Mensaje("¡Historia actualizada con éxito! 🐾✨", "success");
             } else {
                 // MODO NUEVO: INSERT
@@ -397,6 +415,8 @@ export default function NuevoBlog() {
                     });
 
                 if (error) throw error;
+                // Revalidar caché del servidor al instante
+                await fetch("/api/revalidate?path=/").catch(err => console.warn("Error revalidando:", err));
                 Mensaje("¡Historia publicada con éxito! 🐾✨", "success");
             }
 

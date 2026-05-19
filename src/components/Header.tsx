@@ -35,16 +35,49 @@ const NAV: Record<string, { nvLeft: any[]; nvRight: any[] }> = {
       { isBtn: true, cls: "bt_auth", ico: "fa-sign-in-alt", txt: "Login" },
     ],
   },
-  smile: {
+  creador: {
     nvLeft: [
       { href: "/", page: "inicio", ico: "fa-house", txt: "Dashboard" },
       ...COMUN,
     ],
     nvRight: [
-      // { href: '/word', page: 'word', ico: 'fa-rocket', txt: 'Planificar' },
+      { href: '/misdetalles', page: 'misdetalles', ico: 'fa-heart', txt: 'Mis Detalles' },
+      { href: '/solicitud', page: 'solicitud', ico: 'fa-user-check', txt: 'Quiero ser Editor' },
+      { isPerfil: true },
+      { isSalir: true },
+    ],
+  },
+  editor: {
+    nvLeft: [
+      { href: '/editor/bienvenido', page: 'editor/bienvenido', ico: 'fa-rocket', txt: 'Bienvenido' },
+      ...COMUN,
+    ],
+    nvRight: [
       { href: '/nuevo', page: 'nuevo', ico: 'fa-plus', txt: 'Nuevo Post' },
-      { href: '/notas', page: 'notas', ico: 'fa-note-sticky', txt: 'Notas' },
+      { href: '/misposts', page: 'misposts', ico: 'fa-folder', txt: 'Mis Posts' },
       { href: '/mensajes', page: 'mensajes', ico: 'fa-comments', txt: 'Mensajes' },
+      { isPerfil: true },
+      { isSalir: true },
+    ],
+  },
+  gestor: {
+    nvLeft: [
+      { href: "/", page: "inicio", ico: "fa-house", txt: "Dashboard" },
+      ...COMUN,
+    ],
+    nvRight: [
+      { href: '/aprobar', page: 'aprobar', ico: 'fa-user-check', txt: 'Aprobar Solicitudes' },
+      { isPerfil: true },
+      { isSalir: true },
+    ],
+  },
+  admin: {
+    nvLeft: [
+      { href: "/", page: "inicio", ico: "fa-house", txt: "Dashboard" },
+      ...COMUN,
+    ],
+    nvRight: [
+      { href: '/aprobar', page: 'aprobar', ico: 'fa-user-check', txt: 'Aprobar Solicitudes' },
       { isPerfil: true },
       { isSalir: true },
     ],
@@ -164,8 +197,8 @@ export default function Header({ perfilInicial = null }: { perfilInicial?: Smile
 
       {/* ── MODALES ── */}
       <ModalesLogin isOpen={!!modalTxt} onClose={() => setModalTxt(null)} className={`wilg_mod ${modalTxt === "Registrar" ? "wilg_mod_reg" : ""}`}>
-        {modalTxt === "Login" && <Login vistaInicial="login" isModal={true} />}
-        {modalTxt === "Registrar" && <Login vistaInicial="registrar" isModal={true} />}
+        {modalTxt === "Login" && <Login vistaInicial="login" isModal={true} onClose={() => setModalTxt(null)} />}
+        {modalTxt === "Registrar" && <Login vistaInicial="registrar" isModal={true} onClose={() => setModalTxt(null)} />}
         {modalTxt === "Descubre" && (
           <div style={{ padding: '2.5rem 1.5rem', textAlign: 'center', background: 'var(--wb)', borderRadius: '1vh' }}>
             <i className="fas fa-gauge" style={{ fontSize: '3rem', color: 'var(--mco)', marginBottom: '1rem' }} />
